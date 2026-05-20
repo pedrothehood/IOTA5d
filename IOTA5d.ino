@@ -1,3 +1,5 @@
+// Achtung: HTTP_POST könnte auch 3 statt 2 sein!!!!! (in configServer.h)
+
 #include <Arduino.h>
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
@@ -10,15 +12,22 @@
 #include "sensorDataToWs.h"  // Lokale Header-Datei laden
 #include "serverInit.h"      // Lokale Header-Datei laden
 #include "wifiInit.h"        // Lokale Header-Datei laden
+#include "configServer.h"    // Lokale Header-Datei laden
+#include "globals.h"         // Lokale Header-Datei laden
+#include <Preferences.h>
 
-const char *ssid = "TP-Link_2.4GHz_0494CA";
-const char *password = "pedrothehood007";
-
+Preferences prefs;
+//const char *ssid = "TP-Link_2.4GHz_0494CA";
+//const char *password = "pedrothehood007";
+#include <WebServer.h>  // Für Config (Einfachheit)
 #define SENSOR_RX 16
 #define SENSOR_TX 17
 // Pins definieren
 // Buzzer - Pin
-#define BUZZER_PIN 18
+//#define BUZZER_PIN 18
+// Physischer Button (Zieht gegen GND)
+#define CONFIG_BUTTON_PIN 7  // D5 oder GPIO7
+bool configMode = false;
 // Globaler Status für den Buzzer
 volatile float targetDistance = 800.0;  // füttern
 volatile bool personDetected = false;   // füttern
@@ -26,16 +35,39 @@ volatile bool isMoving = false;         // füttern
 unsigned long lastMoveTime = 0;
 const unsigned long hysteresisDelay = 1000;
 
+
 // RD03D radar(Serial1);
 RD03D radar(SENSOR_RX, SENSOR_TX, 256000);  // RX, TX, Baudrate
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
-
+WebServer configServer(80);
 void setup() {
   Serial.begin(115200);
+  pinMode(CONFIG_BUTTON_PIN, INPUT_PULLUP);
   delay(1000);
+  // 1. Taster-Abfrage beim Start (ca. 2 Sek warten oder sofort prüfen)
+  if (digitalRead(CONFIG_BUTTON_PIN) == LOW) {
+    configMode = true;
+  }
   //buzzerTaskSetup();
-  wifiInit(ssid, password, radar);
+
+  if (configMode) {  // ok
+    // FALL 2: Konfig-Modus (AP ohne Passwort)
+    Serial.println(">>> MODUS: KONFIGURATION (AP) <<<");
+    startConfigPortal(configServer, prefs);
+  } else {
+    // STA-Normalfall oder AP mit Radar:  In diesen Fällen Asynchroner Webserver!
+
+    wifiInit(ssid, password, radar);  // STA mit Radar oder AP mit Radar?
+
+    if (WiFi.status() != WL_CONNECTED) {
+      // keine Verbindung-> Abbruch
+      Serial.println(">>> Keine Verbindung geschafft! <<<");
+      // Abbruch!
+      Serial.println("Fehler, keine Verbindung geschafft... Gehe in den Tiefschlaf...");
+      esp_deep_sleep_start();
+    }
+  }
   serverInit(server, ws);
   // static TargetData*  ptrTarget ; //= radar.getTarget();    // get pointer to first target ( SINGLE DETECTION )
   // static bool detected = false;
@@ -45,7 +77,13 @@ void setup() {
   ArduinoOTA.begin();
 }
 void loop() {
- // WICHTIG: Prüft kontinuierlich auf eingehende Updates
-  ArduinoOTA.handle(); 
-sensorDataToWs(ws,radar, personDetected, targetDistance,isMoving);
+  // WICHTIG: Prüft kontinuierlich auf eingehende Updates
+  ArduinoOTA.handle();
+
+  if (digitalRead(CONFIG_BUTTON_PIN) == LOW) {
+    delay(3000);
+    if (digitalRead(CONFIG_BUTTON_PIN) == LOW)
+      ESP.restart();
+  }
+  sensorDataToWs(ws, radar, personDetected, targetDistance, isMoving);
 }

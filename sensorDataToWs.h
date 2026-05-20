@@ -1,7 +1,8 @@
 #ifndef SENSOR_DATA_TO_WS_H
 #define SENSOR_DATA_TO_WS_H
 #include <Arduino.h> // Wichtig, um Arduino-Befehle wie digitalWrite zu nutzen
-
+//#include <ESPAsyncWebServer.h>
+//#include <RD03D.h>
 // Sensor-Daten an Websocket senden
 void sensorDataToWs(AsyncWebSocket &ws,RD03D &radar, volatile bool &personDetected, volatile float &targetDistance,volatile bool &isMoving) {
   //Serial.print("Sensor-Daten an Websocket senden");

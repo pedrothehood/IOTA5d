@@ -1,15 +1,42 @@
 #ifndef WIFI_INIT_H
 #define WIFI_INIT_H
-#include <Arduino.h> // Wichtig, um Arduino-Befehle wie digitalWrite zu nutzen
+#include <Arduino.h>  // Wichtig, um Arduino-Befehle wie digitalWrite zu nutzen
 
 // init wifi
-void wifiInit(const char* &ssid, const char* &password,RD03D &radar) {
+void wifiInit(String &ssid, String &password, RD03D &radar) {
   Serial.print("Wifi verbinden");
   WiFi.begin(ssid, password);
+  int retry = 0;
+  while (WiFi.status() != WL_CONNECTED && retry < 10) {
+    delay(500);
+    retry++;
+  }
+  if (WiFi.status() != WL_CONNECTED) {
+
+    // AP versuchen:
+    WiFi.mode(WIFI_AP);
+    WiFi.softAP("WT32_SETUP");
+    retry = 0;
+    while (WiFi.status() != WL_CONNECTED && retry < 10) {
+      delay(500);
+      retry++;
+    }
+
+    if (WiFi.status() != WL_CONNECTED) return;
+    Serial.println(">>> MODUS: AP RADAR <<<");
+
+  } else {  // Connected to STA
+    Serial.println(">>> MODUS: STA RADAR <<<");
+  }
+
+  
+  /*
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
-  }
+  }  */
+
+
   Serial.println("\nIP: " + WiFi.localIP().toString());
   Serial.print("Wifi verbunden, initialisiere Sensor...");
 
@@ -23,4 +50,6 @@ void wifiInit(const char* &ssid, const char* &password,RD03D &radar) {
     }
   }
 }
+
+
 #endif
