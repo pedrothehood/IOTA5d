@@ -2,10 +2,12 @@
 #define CONFIG_SERVER_H
 #include <Arduino.h> // Wichtig, um Arduino-Befehle wie digitalWrite zu nutzen
 #include "globals.h"        // Lokale Header-Datei laden
+#include <ESPAsyncWebServer.h>
 #include <WebServer.h>
 #include <Preferences.h>
 void getPreferences(Preferences &prefs)
 {
+  
   // Aktuelle Werte aus Preferences laden
   prefs.begin("config", true);
   sensorid = prefs.getString("sid", "");
@@ -15,6 +17,11 @@ void getPreferences(Preferences &prefs)
   servername = prefs.getString("srv", "");
   // mac = prefs.getString("mac", "");
   prefs.end();
+  Serial.println("Funktion getPreferences: am Schluss:");
+   Serial.print("SSID= ");
+      Serial.println(ssid);
+       Serial.print("PASSWORD= ");
+        Serial.println(password);
 }
 
 void handleRoot(WebServer &server, Preferences &prefs)
@@ -69,16 +76,23 @@ html += "</form></div></body></html>";
 
 void handleSave(WebServer &server, Preferences &prefs)
 {
-  if (server.method() == 2)   // für HTTP Post
+  Serial.print("handleSave, server.method = ");
+    Serial.println(String(server.method()));
+  if (server.method() == 3)   // für HTTP Post
    {
     prefs.begin("config", false);
+Serial.println("Funktion handleSave: am Beginn:");
+   Serial.print("SSID= ");
+      Serial.println(server.arg("sensorid"));
+       Serial.print("PASSWORD= ");
+        Serial.println(server.arg("password"));
 
     // Werte aus dem Formular in den Speicher schreiben
     prefs.putString("sid", server.arg("sensorid"));
     prefs.putString("key", server.arg("apiKey"));
     prefs.putString("ssid", server.arg("ssid"));
     prefs.putString("pass", server.arg("password"));
-    prefs.putString("srv", server.arg("servername"));
+    prefs.putString("srv", server.arg("servername"));  
 
     prefs.end();
 
@@ -101,14 +115,14 @@ void startConfigPortal(WebServer &server, Preferences &prefs)
   server.on("/save", 3, handleSave);   */
   // Lambda-Funktionen verwenden, um Parameter zu übergeben
   server.on("/", (HTTPMethod)1, [&server, &prefs]() { 
-    handleRoot(server, prefs); 
+    handleRoot(server,prefs); 
   });
 
-  server.on("/save", (HTTPMethod)2, [&server, &prefs]() { 
-    handleSave(server, prefs); 
+  server.on("/save", (HTTPMethod)3, [&server, &prefs]() { 
+    handleSave(server,prefs); 
   });
   server.begin();
-
+ Serial.println("HTTP Server läuft.");
   while (true)
   {
     server.handleClient();

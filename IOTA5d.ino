@@ -34,13 +34,13 @@ volatile bool personDetected = false;   // füttern
 volatile bool isMoving = false;         // füttern
 unsigned long lastMoveTime = 0;
 const unsigned long hysteresisDelay = 1000;
-
+bool ap_success;
 
 // RD03D radar(Serial1);
 RD03D radar(SENSOR_RX, SENSOR_TX, 256000);  // RX, TX, Baudrate
-AsyncWebServer server(80);
-AsyncWebSocket ws("/ws");
-WebServer configServer(80);
+//AsyncWebServer server(81);           // TEST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//AsyncWebSocket ws("/ws");
+//WebServer configServer(80);
 void setup() {
   Serial.begin(115200);
   pinMode(CONFIG_BUTTON_PIN, INPUT_PULLUP);
@@ -57,15 +57,25 @@ void setup() {
     startConfigPortal(configServer, prefs);
   } else {
     // STA-Normalfall oder AP mit Radar:  In diesen Fällen Asynchroner Webserver!
+    getPreferences(prefs);
+     Serial.print("SSID= ");
+      Serial.println(ssid);
+       Serial.print("PASSWORD= ");
+        Serial.println(password);
+    wifiInit(ssid, password, radar, ap_success);  // STA mit Radar oder AP mit Radar?
 
-    wifiInit(ssid, password, radar);  // STA mit Radar oder AP mit Radar?
-
-    if (WiFi.status() != WL_CONNECTED) {
+    if (WiFi.status() != WL_CONNECTED && ap_success == false) {
       // keine Verbindung-> Abbruch
       Serial.println(">>> Keine Verbindung geschafft! <<<");
       // Abbruch!
-      Serial.println("Fehler, keine Verbindung geschafft... Gehe in den Tiefschlaf...");
-      esp_deep_sleep_start();
+      //     Serial.println("Fehler, keine Verbindung geschafft... Gehe in den Tiefschlaf...");
+      //   esp_deep_sleep_start();
+      Serial.println("Fehler, keine Verbindung geschafft... Restart");
+      delay(1000);
+       configServer.stop(); 
+    //Serial.println("Server instance gestoppt und Ressourcen freigegeben.");
+
+      ESP.restart();
     }
   }
   serverInit(server, ws);
@@ -81,8 +91,9 @@ void loop() {
   ArduinoOTA.handle();
 
   if (digitalRead(CONFIG_BUTTON_PIN) == LOW) {
-    delay(3000);
+    delay(2000);
     if (digitalRead(CONFIG_BUTTON_PIN) == LOW)
+    configServer.stop();
       ESP.restart();
   }
   sensorDataToWs(ws, radar, personDetected, targetDistance, isMoving);
