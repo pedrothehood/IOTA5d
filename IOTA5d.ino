@@ -10,10 +10,11 @@
 #include "buzzerTask.h"      // Lokale Header-Datei laden
 #include "serverInit.h"      // Lokale Header-Datei laden
 #include "sensorDataToWs.h"  // Lokale Header-Datei laden
-#include "serverInit.h"      // Lokale Header-Datei laden
 #include "wifiInit.h"        // Lokale Header-Datei laden
 #include "configServer.h"    // Lokale Header-Datei laden
 #include "globals.h"         // Lokale Header-Datei laden
+#include "blinker.h"
+LedBlinker wifiBlinker;
 #include <Preferences.h>
 
 Preferences prefs;
@@ -55,13 +56,10 @@ void setup() {
     // FALL 2: Konfig-Modus (AP ohne Passwort)
     Serial.println(">>> MODUS: KONFIGURATION (AP) <<<");
     startConfigPortal(configServer, prefs);
+    return;
   } else {
     // STA-Normalfall oder AP mit Radar:  In diesen Fällen Asynchroner Webserver!
     getPreferences(prefs);
-     Serial.print("SSID= ");
-      Serial.println(ssid);
-       Serial.print("PASSWORD= ");
-        Serial.println(password);
     wifiInit(ssid, password, radar, ap_success);  // STA mit Radar oder AP mit Radar?
 
     if (WiFi.status() != WL_CONNECTED && ap_success == false) {
@@ -72,12 +70,19 @@ void setup() {
       //   esp_deep_sleep_start();
       Serial.println("Fehler, keine Verbindung geschafft... Restart");
       delay(1000);
-       configServer.stop(); 
-    //Serial.println("Server instance gestoppt und Ressourcen freigegeben.");
+      configServer.stop();
+      //Serial.println("Server instance gestoppt und Ressourcen freigegeben.");
 
       ESP.restart();
     }
   }
+  // Blinker setzen
+  if (wifiMode=="AP"){
+      wifiBlinker = {6, 0, 0, 150, 200,1000};
+  }else{
+      wifiBlinker = {6, 0, 0, 150, 200,1000};
+  }
+  pinMode(wifiBlinker.pin, OUTPUT);
   serverInit(server, ws);
   // static TargetData*  ptrTarget ; //= radar.getTarget();    // get pointer to first target ( SINGLE DETECTION )
   // static bool detected = false;
@@ -92,9 +97,15 @@ void loop() {
 
   if (digitalRead(CONFIG_BUTTON_PIN) == LOW) {
     delay(2000);
-    if (digitalRead(CONFIG_BUTTON_PIN) == LOW)
-    configServer.stop();
+    if (digitalRead(CONFIG_BUTTON_PIN) == LOW) {
+      configServer.stop();
       ESP.restart();
+    }
+  }
+  if (wifiMode=="AP"){
+      updateBlink(wifiBlinker,2);
+  }else{
+      updateBlink(wifiBlinker,1);
   }
   sensorDataToWs(ws, radar, personDetected, targetDistance, isMoving);
 }

@@ -1,7 +1,7 @@
 #ifndef WIFI_INIT_H
 #define WIFI_INIT_H
 #include <Arduino.h>  // Wichtig, um Arduino-Befehle wie digitalWrite zu nutzen
-
+#include "globals.h"
 // init wifi
 void wifiInit(String &ssid, String &password, RD03D &radar, bool &ap_success) {
   Serial.print("Wifi verbinden");
@@ -25,9 +25,11 @@ void wifiInit(String &ssid, String &password, RD03D &radar, bool &ap_success) {
 
     if (ap_success == false) return;
     Serial.println(">>> MODUS: AP RADAR <<<");
+    wifiMode = "AP";
 
   } else {  // Connected to STA
     Serial.println(">>> MODUS: STA RADAR <<<");
+    wifiMode = "STA";
   }
 
   
