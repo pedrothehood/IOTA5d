@@ -1,9 +1,10 @@
 #ifndef WIFI_INIT_H
 #define WIFI_INIT_H
 #include <Arduino.h>  // Wichtig, um Arduino-Befehle wie digitalWrite zu nutzen
+#include <ESPmDNS.h>
 #include "globals.h"
 // init wifi
-void wifiInit(String &ssid, String &password, RD03D &radar, bool &ap_success) {
+void wifiInit(String &ssid, String &password, RD03D &radar, bool &ap_success, String sensorid) {
   Serial.print("Wifi verbinden");
   WiFi.begin(ssid, password);
   int retry = 0;
@@ -16,7 +17,7 @@ void wifiInit(String &ssid, String &password, RD03D &radar, bool &ap_success) {
     // AP versuchen:
     WiFi.mode(WIFI_AP);
     ap_success = WiFi.softAP("WT32_SETUP");
-    
+
     //retry = 0;
     /*while (WiFi.status() != WL_CONNECTED && retry < 10) {
       delay(500);
@@ -30,9 +31,17 @@ void wifiInit(String &ssid, String &password, RD03D &radar, bool &ap_success) {
   } else {  // Connected to STA
     Serial.println(">>> MODUS: STA RADAR <<<");
     wifiMode = "STA";
+    // mDNS starten (Hostname: mein-esp32.local)
+    if (sensorid > "") {
+      if (!MDNS.begin(sensorid)) {
+        Serial.println("Fehler beim Starten von mDNS");
+      } else {
+        Serial.println("mDNS gestartet: http://" + sensorid + ".local");
+      }
+    }
   }
 
-  
+
   /*
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
