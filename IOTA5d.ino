@@ -36,6 +36,8 @@ volatile bool isMoving = false;         // füttern
 unsigned long lastMoveTime = 0;
 const unsigned long hysteresisDelay = 1000;
 bool ap_success;
+unsigned long buttonPressedTime = 0;
+bool buttonIsPressed = false;
 
 // RD03D radar(Serial1);
 RD03D radar(SENSOR_RX, SENSOR_TX, 256000);  // RX, TX, Baudrate
@@ -56,7 +58,7 @@ void setup() {
     // FALL 2: Konfig-Modus (AP ohne Passwort)
     Serial.println(">>> MODUS: KONFIGURATION (AP) <<<");
     startConfigPortal(configServer, prefs);
-    return;
+    //return;
   } else {
     // STA-Normalfall oder AP mit Radar:  In diesen Fällen Asynchroner Webserver!
     getPreferences(prefs);
@@ -93,16 +95,43 @@ void setup() {
   ArduinoOTA.begin();
 }
 void loop() {
+  if (configMode) {
+    configServer.handleClient();
+    return; 
+  }
   // WICHTIG: Prüft kontinuierlich auf eingehende Updates
   ArduinoOTA.handle();
 
-  if (digitalRead(CONFIG_BUTTON_PIN) == LOW) {
+  if (digitalRead(CONFIG§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§_BUTTON_PIN) == LOW) {
+    if (!buttonIsPressed) {
+      buttonIsPressed = true;
+      buttonPressedTime = millis(); // Startzeit merken
+    //  Serial.println("Knopf gedrückt... Halten für Reset!");
+    } else if (millis() - buttonPressedTime >= 2000) {
+      // Wenn seit dem ersten Drücken 2000ms vergangen sind
+      Serial.println("2 Sekunden erreicht! Starte Neu...");
+      configServer.stop();
+      delay(500); // Kurz warten für serielle Ausgabe
+      ESP.restart();
+    }
+  } else {
+    // Knopf wurde losgelassen, bevor 2 Sekunden um waren
+    if (buttonIsPressed) {
+      Serial.println("Reset abgebrochen (Knopf zu kurz gedrückt).");
+      buttonIsPressed = false;
+    }
+  }
+
+ /* if (digitalRead(CONFIG_BUTTON_PIN) == LOW) {
+    Serial.println("CONFIG_BUTTON_PIN == LOW");
     delay(2000);
     if (digitalRead(CONFIG_BUTTON_PIN) == LOW) {
+      Serial.println("CONFIG_BUTTON_PIN == LOW AFTER 2000");
       configServer.stop();
       ESP.restart();
     }
-  }
+  }  */
+
   if (wifiMode=="AP"){
       updateBlink(wifiBlinker,2);
   }else{
