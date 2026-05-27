@@ -3,6 +3,7 @@
 #include <Arduino.h> // Wichtig, um Arduino-Befehle wie digitalWrite zu nutzen
 #include <ESPAsyncWebServer.h>
 #include <WebServer.h>
+#include <PubSubClient.h>
 AsyncWebServer server(80);           // TEST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 AsyncWebSocket ws("/ws");
 WebServer configServer(80);
@@ -11,5 +12,10 @@ WebServer configServer(80);
 String sensorid, apiKey, ssid, password, servername, mac;
 
 String wifiMode = "";  // AP oder STA
+
+
+const char* mqtt_server = "10.0.0.37";
+WiFiClient espClient;
+PubSubClient client(espClient);
 
 #endif

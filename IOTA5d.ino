@@ -81,6 +81,7 @@ void setup() {
       wifiBlinker = {6, 0, 0, 150, 200,1000};
   }else{
       wifiBlinker = {6, 0, 0, 150, 200,1000};
+      client.setServer(mqtt_server, 1883);
   }
   pinMode(wifiBlinker.pin, OUTPUT);
   serverInit(server, ws);
@@ -106,6 +107,7 @@ void loop() {
       updateBlink(wifiBlinker,2);
   }else{
       updateBlink(wifiBlinker,1);
+      client.loop();
   }
-  sensorDataToWs(ws, radar, personDetected, targetDistance, isMoving);
+  sensorDataToWs(ws, radar, personDetected, targetDistance, isMoving, sensorid);
 }

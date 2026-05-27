@@ -1,10 +1,11 @@
 #ifndef SENSOR_DATA_TO_WS_H
 #define SENSOR_DATA_TO_WS_H
 #include <Arduino.h> // Wichtig, um Arduino-Befehle wie digitalWrite zu nutzen
+#include "globals.h"         // Lokale Header-Datei laden
 //#include <ESPAsyncWebServer.h>
 //#include <RD03D.h>
 // Sensor-Daten an Websocket senden
-void sensorDataToWs(AsyncWebSocket &ws,RD03D &radar, volatile bool &personDetected, volatile float &targetDistance,volatile bool &isMoving) {
+void sensorDataToWs(AsyncWebSocket &ws,RD03D &radar, volatile bool &personDetected, volatile float &targetDistance,volatile bool &isMoving, String sensorid) {
   //Serial.print("Sensor-Daten an Websocket senden");
   ws.cleanupClients();
   radar.tasks();
@@ -44,6 +45,9 @@ void sensorDataToWs(AsyncWebSocket &ws,RD03D &radar, volatile bool &personDetect
         json += "]}";
         if (!first) {
           ws.textAll(json);
+          if (wifiMode == "STA" && sensorid > ""){
+            client.publish("radardaten/esp32-s3-1", json.c_str());
+          }
         }
       }
     }
