@@ -102,7 +102,7 @@ void loop() {
   // WICHTIG: Prüft kontinuierlich auf eingehende Updates
   ArduinoOTA.handle();
 
-  if (digitalRead(CONFIG§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§_BUTTON_PIN) == LOW) {
+  if (digitalRead(CONFIG_BUTTON_PIN) == LOW) {
     if (!buttonIsPressed) {
       buttonIsPressed = true;
       buttonPressedTime = millis(); // Startzeit merken
