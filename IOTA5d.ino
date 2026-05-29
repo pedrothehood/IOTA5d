@@ -47,7 +47,8 @@ RD03D radar(SENSOR_RX, SENSOR_TX, 256000);  // RX, TX, Baudrate
 //WebServer configServer(80);
 void setup() {
   Serial.begin(115200);
-  pinMode(CONFIG_BUTTON_PIN, INPUT_PULLUP);
+  //pinMode(CONFIG_BUTTON_PIN, INPUT_PULLUP);
+   pinMode(CONFIG_BUTTON_PIN, INPUT);// 10kOhm Widerstand zwischen Pin und 3.3Volt
   delay(1000);
   // 1. Taster-Abfrage beim Start (ca. 2 Sek warten oder sofort prüfen)
   if (digitalRead(CONFIG_BUTTON_PIN) == LOW) {
