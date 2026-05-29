@@ -14,6 +14,7 @@
 #include "configServer.h"    // Lokale Header-Datei laden
 #include "globals.h"         // Lokale Header-Datei laden
 #include "blinker.h"
+#include "pins_config.h"
 LedBlinker wifiBlinker;
 #include <Preferences.h>
 
@@ -21,13 +22,13 @@ Preferences prefs;
 //const char *ssid = "TP-Link_2.4GHz_0494CA";
 //const char *password = "pedrothehood007";
 #include <WebServer.h>  // Für Config (Einfachheit)
-#define SENSOR_RX 16
-#define SENSOR_TX 17
+//#define SENSOR_RX 16
+//#define SENSOR_TX 17
 // Pins definieren
 // Buzzer - Pin
 //#define BUZZER_PIN 18
 // Physischer Button (Zieht gegen GND)
-#define CONFIG_BUTTON_PIN 7  // D5 oder GPIO7
+//#define CONFIG_BUTTON_PIN 7  // D5 oder GPIO7
 bool configMode = false;
 // Globaler Status für den Buzzer
 volatile float targetDistance = 800.0;  // füttern
@@ -80,9 +81,9 @@ void setup() {
   }
   // Blinker setzen
   if (wifiMode=="AP"){
-      wifiBlinker = {6, 0, 0, 150, 200,1000};
+      wifiBlinker = {LED_BLINK_PIN, 0, 0, 150, 200,1000};
   }else{
-      wifiBlinker = {6, 0, 0, 150, 200,1000};
+      wifiBlinker = {LED_BLINK_PIN, 0, 0, 150, 200,1000};
       client.setServer(mqtt_server, 1883);
   }
   pinMode(wifiBlinker.pin, OUTPUT);

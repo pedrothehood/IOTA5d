@@ -6,6 +6,7 @@
 #include <WebServer.h>
 #include <Preferences.h>
 #include "blinker.h"
+#include "pins_config.h"
 LedBlinker configBlinker;
 void getPreferences(Preferences &prefs) {
 
@@ -101,7 +102,7 @@ void startConfigPortal(WebServer &server, Preferences &prefs) {
   Serial.println("Starte Config Portal (AP: ESP32-C3_SETUP)...");
   WiFi.mode(WIFI_AP);
   WiFi.softAP("WT32_SETUP");
- configBlinker = {6, 0, 0, 150, 200,1000};
+ configBlinker = {LED_BLINK_PIN, 0, 0, 150, 200,1000};
   pinMode(configBlinker.pin, OUTPUT);
   /* server.on("/", 1, handleRoot);
   server.on("/save", 3, handleSave);   */

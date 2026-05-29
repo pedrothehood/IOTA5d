@@ -45,7 +45,7 @@ void sensorDataToWs(AsyncWebSocket &ws,RD03D &radar, volatile bool &personDetect
         json += "]}";
         if (!first) {
           ws.textAll(json);
-          if (wifiMode == "STA" && sensorid > ""){
+          if (wifiMode == "STA" && sensorid > "" && mqttActive == true){
             client.publish("radardaten/esp32-s3-1", json.c_str());
           }
         }
