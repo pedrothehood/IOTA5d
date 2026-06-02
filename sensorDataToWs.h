@@ -12,6 +12,8 @@ void sensorDataToWs(AsyncWebSocket &ws,RD03D &radar, volatile bool &personDetect
   //static uint32_t lastMsg = 0;
   unsigned long now = millis();
   static unsigned long lastWSUpdate = 0;
+    static unsigned long lastMqttPublish = 0; // Unabhängiger MQTT-Timer
+    
   if (now - lastWSUpdate > 100) {
     lastWSUpdate = now;
     if (ws.count() > 0 && ws.availableForWriteAll()) {
@@ -46,7 +48,9 @@ void sensorDataToWs(AsyncWebSocket &ws,RD03D &radar, volatile bool &personDetect
         if (!first) {
           ws.textAll(json);
           if (wifiMode == "STA" && sensorid > "" && mqttActive == true){
-            client.publish("radardaten/esp32-s3-1", json.c_str());
+            //client.publish("radardaten/esp32-s3-1", json.c_str());
+             client.publish("esp32/radardaten", "Online");
+            //Serial.println("publish radardaten");
           }
         }
       }

@@ -13,7 +13,7 @@ String sensorid, apiKey, ssid, password, servername, mac;
 
 String wifiMode = "";  // AP oder STA
 
-bool mqttActive = false; 
+bool mqttActive = true; 
 
 const char* mqtt_server = "10.0.0.37";
 WiFiClient espClient;

@@ -48,7 +48,7 @@ RD03D radar(SENSOR_RX, SENSOR_TX, 256000);  // RX, TX, Baudrate
 void setup() {
   Serial.begin(115200);
   //pinMode(CONFIG_BUTTON_PIN, INPUT_PULLUP);
-   pinMode(CONFIG_BUTTON_PIN, INPUT);// 10kOhm Widerstand zwischen Pin und 3.3Volt
+  pinMode(CONFIG_BUTTON_PIN, INPUT);  // 10kOhm Widerstand zwischen Pin und 3.3Volt
   delay(1000);
   // 1. Taster-Abfrage beim Start (ca. 2 Sek warten oder sofort prüfen)
   if (digitalRead(CONFIG_BUTTON_PIN) == LOW) {
@@ -81,11 +81,11 @@ void setup() {
     }
   }
   // Blinker setzen
-  if (wifiMode=="AP"){
-      wifiBlinker = {LED_BLINK_PIN, 0, 0, 150, 200,1000};
-  }else{
-      wifiBlinker = {LED_BLINK_PIN, 0, 0, 150, 200,1000};
-      client.setServer(mqtt_server, 1883);
+  if (wifiMode == "AP") {
+    wifiBlinker = { LED_BLINK_PIN, 0, 0, 150, 200, 1000 };
+  } else {
+    wifiBlinker = { LED_BLINK_PIN, 0, 0, 150, 200, 1000 };
+    client.setServer(mqtt_server, 1883);
   }
   pinMode(wifiBlinker.pin, OUTPUT);
   serverInit(server, ws);
@@ -99,7 +99,7 @@ void setup() {
 void loop() {
   if (configMode) {
     configServer.handleClient();
-    return; 
+    return;
   }
   // WICHTIG: Prüft kontinuierlich auf eingehende Updates
   ArduinoOTA.handle();
@@ -107,13 +107,13 @@ void loop() {
   if (digitalRead(CONFIG_BUTTON_PIN) == LOW) {
     if (!buttonIsPressed) {
       buttonIsPressed = true;
-      buttonPressedTime = millis(); // Startzeit merken
-    //  Serial.println("Knopf gedrückt... Halten für Reset!");
+      buttonPressedTime = millis();  // Startzeit merken
+      //  Serial.println("Knopf gedrückt... Halten für Reset!");
     } else if (millis() - buttonPressedTime >= 2000) {
       // Wenn seit dem ersten Drücken 2000ms vergangen sind
       Serial.println("2 Sekunden erreicht! Starte Neu...");
       configServer.stop();
-      delay(500); // Kurz warten für serielle Ausgabe
+      delay(500);  // Kurz warten für serielle Ausgabe
       ESP.restart();
     }
   } else {
@@ -124,7 +124,7 @@ void loop() {
     }
   }
 
- /* if (digitalRead(CONFIG_BUTTON_PIN) == LOW) {
+  /* if (digitalRead(CONFIG_BUTTON_PIN) == LOW) {
     Serial.println("CONFIG_BUTTON_PIN == LOW");
     delay(2000);
     if (digitalRead(CONFIG_BUTTON_PIN) == LOW) {
@@ -134,11 +134,26 @@ void loop() {
     }
   }  */
 
-  if (wifiMode=="AP"){
-      updateBlink(wifiBlinker,2);
-  }else{
-      updateBlink(wifiBlinker,1);
-      client.loop();
+  if (wifiMode == "AP") {
+    updateBlink(wifiBlinker, 2);
+  } else {
+    updateBlink(wifiBlinker, 1);
+
+
+    if (!client.connected()) {
+      // Nur die Client-ID übergeben, keine Passwörter für den anonymen Test
+      if (client.connect("ESP32S3_Client")) {
+        Serial.println("Erfolgreich mit Mosquitto verbunden!");
+        client.publish("esp32/status", "Online");
+      } else {
+        Serial.print("Fehlgeschlagen, RC=");
+        Serial.print(client.state());  // Gibt den Fehlercode aus
+        delay(5000);
+      }
+    }
+
+
+    client.loop();
   }
   sensorDataToWs(ws, radar, personDetected, targetDistance, isMoving, sensorid);
 }

@@ -3,6 +3,19 @@
 #include <Arduino.h>  // Wichtig, um Arduino-Befehle wie digitalWrite zu nutzen
 #include <ESPmDNS.h>
 #include "globals.h"
+
+void reconnect() {
+  while (!client.connected()) {
+    // Client-ID generieren
+    String clientId = "ESP32S3-Radar-" + String(random(0xffff), HEX);
+    if (client.connect(clientId.c_str())) {
+      // Verbindung erfolgreich
+    } else {
+      delay(5000);
+    }
+  }
+}
+
 // init wifi
 void wifiInit(String &ssid, String &password, RD03D &radar, bool &ap_success, String sensorid) {
   Serial.print("Wifi verbinden");
