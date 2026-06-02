@@ -84,7 +84,10 @@ void setup() {
     wifiBlinker = { LED_BLINK_PIN, 0, 0, 150, 200, 1000 };
   } else {
     wifiBlinker = { LED_BLINK_PIN, 0, 0, 150, 200, 1000 };
-    client.setServer(mqtt_server, 1883);
+    if (mqttActive == true) {
+      mqttQueueSensor = "Sensor-" + sensorid;
+      client.setServer(mqtt_server, 1883);
+    }
   }
   pinMode(wifiBlinker.pin, OUTPUT);
   serverInit(server, ws);
@@ -138,21 +141,24 @@ void loop() {
   } else {
     updateBlink(wifiBlinker, 1);
 
+    if (mqttActive == true) {
 
-    if (!client.connected()) {
-      // Nur die Client-ID übergeben, keine Passwörter für den anonymen Test
-      if (client.connect("ESP32S3_Client")) {
-        Serial.println("Erfolgreich mit Mosquitto verbunden!");
-        client.publish("esp32/status", "Online");
-      } else {
-        Serial.print("Fehlgeschlagen, RC=");
-        Serial.print(client.state());  // Gibt den Fehlercode aus
-        delay(5000);
+      if (!client.connected()) {
+        // Nur die Client-ID übergeben, keine Passwörter für den anonymen Test
+        if (client.connect(mqttQueue.c_str())) {
+          Serial.println("Erfolgreich mit Mosquitto verbunden!");
+          mqttQueue = mqttQueueSensor + "/status";
+          client.publish(mqttQueue.c_str(), "Online");
+        } else {
+          Serial.print("Fehlgeschlagen, RC=");
+          Serial.print(client.state());  // Gibt den Fehlercode aus
+          delay(5000);
+        }
       }
     }
-
-
-    client.loop();
+    if (mqttActive == true) {
+      client.loop();
+    }
   }
   sensorDataToWs(ws, radar, personDetected, targetDistance, isMoving, sensorid);
 }

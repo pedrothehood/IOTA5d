@@ -48,7 +48,8 @@ void sensorDataToWs(AsyncWebSocket &ws,RD03D &radar, volatile bool &personDetect
         if (!first) {
           ws.textAll(json);
           if (wifiMode == "STA" && sensorid > "" && mqttActive == true){
-            client.publish("esp32/radardaten2", json.c_str());
+             mqttQueue = mqttQueueSensor + "/radardata";
+            client.publish(mqttQueue.c_str(), json.c_str());
           }
         }
       }
