@@ -65,7 +65,6 @@ void setup() {
     // STA-Normalfall oder AP mit Radar:  In diesen Fällen Asynchroner Webserver!
     getPreferences(prefs);
     wifiInit(ssid, password, radar, ap_success, sensorid);  // STA mit Radar oder AP mit Radar?
-
     if (WiFi.status() != WL_CONNECTED && ap_success == false) {
       // keine Verbindung-> Abbruch
       Serial.println(">>> Keine Verbindung geschafft! <<<");
