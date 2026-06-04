@@ -86,8 +86,11 @@ void setup() {
   } else {
     wifiBlinker = { LED_BLINK_PIN, 0, 0, 150, 200, 1000 };
     if (mqttActive == true) {
-      mqttQueueSensor = "Sensor-" + sensorid;
-      client.setServer(mqtt_server, 1883);
+      //mqttQueueSensor = "Sensor-" + sensorid;
+      //client.setServer(mqtt_server, 1883);
+      // 1. MQTT-Verbindungen über API-Daten vorbereiten und starten
+      // Aufruf-Beispiel mit API-Key, SensorID "TEST1" und ohne optionale Variant
+      initializeMqttConnections(apiKey.c_str(), sensorid.c_str());
     }
   }
   pinMode(wifiBlinker.pin, OUTPUT);
@@ -96,7 +99,7 @@ void setup() {
   // static bool detected = false;
   //sensorDataToWs(ws,radar,personDetected,targetDistance,isMoving);
   // Hostname im Netzwerk festlegen (so erscheint das Board in VS Code)
-  ArduinoOTA.setHostname("esp32s3-iota4d");
+  ArduinoOTA.setHostname("esp32s3-iota5d");
   ArduinoOTA.begin();
 }
 void loop() {
@@ -104,6 +107,16 @@ void loop() {
     configServer.handleClient();
     return;
   }
+
+  if (mqttActive == true) {
+    // Hält alle aktiven MQTT-Verbindungen am Leben
+    for (auto conn : mqttConnections) {
+      if (conn != nullptr && conn->active) {
+        conn->mqttClient.loop();
+      }
+    }
+  }
+
   // WICHTIG: Prüft kontinuierlich auf eingehende Updates
   ArduinoOTA.handle();
 
@@ -141,7 +154,7 @@ void loop() {
     updateBlink(wifiBlinker, 2);
   } else {
     updateBlink(wifiBlinker, 1);
-
+    /*
     if (mqttActive == true) {
 
       if (!client.connected()) {
@@ -156,10 +169,10 @@ void loop() {
           delay(5000);
         }
       }
-    }
-    if (mqttActive == true) {
-      client.loop();
-    }
+    }  */
+    // if (mqttActive == true) {
+    //  client.loop();
+    //}
   }
   sensorDataToWs(ws, radar, personDetected, targetDistance, isMoving, sensorid);
 }

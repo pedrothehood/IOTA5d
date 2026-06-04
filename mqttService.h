@@ -24,8 +24,8 @@ struct MqttConnection {
 };
 
 // Globaler Vektor speichert alle vorbereiteten Verbindungen
-std::vector<MqttConnection> mqttConnections;
-
+//std::vector<MqttConnection> mqttConnections;
+std::vector<MqttConnection*> mqttConnections;
 // REST API Konfiguration
 const char* wifiSsid     = "DEIN_WIFI_SSID";
 const char* wifiPassword = "DEIN_WIFI_PASSWORT";
@@ -43,8 +43,8 @@ String getMqttData(const char* key, const char* sensorId, const char* variant) {
 
   HTTPClient http;
   // URL mit Pflichtparametern aufbauen
-  String url = "https://mediabegleitung.ch?api_key=" + String(key) + "&active=X&sensorid=" + String(sensorId);
-  
+  String url = "https://mediabegleitung.ch/iotph1/getmqttdata.php?api_key=" + String(key) + "&active=X&sensorid=" + String(sensorId);
+  Serial.println(url);
   // Fakultativer Parameter
   if (variant != nullptr && String(variant).length() > 0) {
     url += "&variant=" + String(variant);
@@ -67,7 +67,6 @@ String getMqttData(const char* key, const char* sensorId, const char* variant) {
 void parseAndPrepareConnections(String jsonString) {
   if (jsonString.length() == 0) return;
 
-  // JSON Dokument dimensionieren (Grösse anpassen falls nötig)
   JsonDocument doc; 
   DeserializationError error = deserializeJson(doc, jsonString);
 
@@ -78,32 +77,36 @@ void parseAndPrepareConnections(String jsonString) {
 
   JsonArray array = doc.as<JsonArray>();
   for (JsonVariant v : array) {
-    MqttConnection conn;
-    conn.connid    = v["connid"];
-    conn.sensorid  = v["sensorid"].as<String>();
-    conn.variant   = v["variant"].as<String>();
-    conn.active    = (v["active"].as<String>() == "X");
-    conn.brokerurl = v["brokerurl"].as<String>();
-    conn.topic     = v["topic"].as<String>();
-    conn.userid    = v["userid"].as<String>();
-    conn.password  = v["password"].as<String>();
-    conn.port      = v["port"].as<int>();
+    // GEÄNDERT: Objekt dynamisch auf dem Heap via 'new' anlegen
+    MqttConnection* conn = new MqttConnection();
+    
+    conn->connid    = v["connid"];
+    conn->sensorid  = v["sensorid"].as<String>();
+    conn->variant   = v["variant"].as<String>();
+    conn->active    = (v["active"].as<String>() == "X");
+    conn->brokerurl = v["brokerurl"].as<String>();
+    conn->topic     = v["topic"].as<String>();
+    conn->userid    = v["userid"].as<String>();
+    conn->password  = v["password"].as<String>();
+    conn->port      = v["port"].as<int>();
 
-    if (conn.active) {
-      // Weise dem PubSubClient den separaten WiFiClient zu
-      conn.mqttClient.setClient(conn.wifiClient);
-      conn.mqttClient.setServer(conn.brokerurl.c_str(), conn.port);
+    if (conn->active) {
+      // Verbindung konfigurieren (Zeiger-Syntax '->' statt '.')
+      conn->mqttClient.setClient(conn->wifiClient);
+      conn->mqttClient.setServer(conn->brokerurl.c_str(), conn->port);
       
-      // Direktverbindung im Setup aufbauen
-      Serial.printf("Initialisiere Verbindung für Variant %s zu Broker %s\n", conn.variant.c_str(), conn.brokerurl.c_str());
-      if (conn.mqttClient.connect(conn.variant.c_str(), conn.userid.c_str(), conn.password.c_str())) {
-        Serial.printf("Erfolgreich verbunden mit Topic: %s\n", conn.topic.c_str());
+      Serial.printf("Initialisiere Verbindung für Variant %s zu Broker %s\n", conn->variant.c_str(), conn->brokerurl.c_str());
+      if (conn->mqttClient.connect(conn->variant.c_str(), conn->userid.c_str(), conn->password.c_str())) {
+        Serial.printf("Erfolgreich verbunden mit Topic: %s\n", conn->topic.c_str());
       } else {
-        Serial.printf("Verbindung fehlgeschlagen. Status: %d\n", conn.mqttClient.state());
+        Serial.printf("Verbindung fehlgeschlagen. Status: %d\n", conn->mqttClient.state());
       }
       
-      // In den globalen Vektor pushen
-      mqttConnections.push_back(std::move(conn));
+      // GEÄNDERT: Den Pointer in den Vektor pushen (kein Speicher-Verschieben mehr!)
+      mqttConnections.push_back(conn);
+    } else {
+      // Wenn nicht aktiv, ungenutzten Speicher sofort freigeben
+      delete conn;
     }
   }
 }
@@ -122,17 +125,18 @@ void initializeMqttConnections(const char* key, const char* sensorId, const char
 
 // Massenversand: Sucht die vorbereitete Verbindung anhand der Variant und sendet sofort
 void sendMqttMessageByVariant(String variant, String message) {
-  for (auto& conn : mqttConnections) {
-    if (conn.variant == variant && conn.active) {
-      if (conn.mqttClient.connected()) {
-        conn.mqttClient.publish(conn.topic.c_str(), message.c_str());
-        Serial.printf("Nachricht an [%s] gesendet: %s\n", conn.topic.c_str(), message.c_str());
+  // GEÄNDERT: Schleife liest nun Pointer aus dem Vektor aus
+  for (auto conn : mqttConnections) {
+    if (conn->variant == variant && conn->active) {
+      if (conn->mqttClient.connected()) {
+        conn->mqttClient.publish(conn->topic.c_str(), message.c_str());
+        //Serial.printf("Nachricht an [%s] gesendet: %s\n", conn->topic.c_str(), message.c_str());
       } else {
-        Serial.printf("Senden fehlgeschlagen. Client für %s ist offline.\n", variant.c_str());
+        //Serial.printf("Senden fehlgeschlagen. Client für %s ist offline.\n", variant.c_str());
       }
-      return; // Ziel-Variant gefunden und abgearbeitet, Schleife beenden
+      return; 
     }
   }
-  Serial.printf("Keine aktive Verbindung für Variant %s konfiguriert.\n", variant.c_str());
+ // Serial.printf("Keine aktive Verbindung für Variant %s konfiguriert.\n", variant.c_str());
 }
 #endif

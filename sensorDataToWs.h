@@ -1,6 +1,7 @@
 #ifndef SENSOR_DATA_TO_WS_H
 #define SENSOR_DATA_TO_WS_H
 #include <Arduino.h>  // Wichtig, um Arduino-Befehle wie digitalWrite zu nutzen
+#include "mqttService.h"
 #include "globals.h"  // Lokale Header-Datei laden
 //#include <ESPAsyncWebServer.h>
 //#include <RD03D.h>
@@ -63,8 +64,8 @@ void sensorDataToWs(AsyncWebSocket &ws, RD03D &radar, volatile bool &personDetec
         String statePayload = personDetected ? "on" : "off";
         mqttQueue = mqttQueueSensor + "/occupancy";
         //String stateTopic = mqttQueue.c_str() + "/occupancy";
-        client.publish(mqttQueue.c_str(), statePayload.c_str());
-        
+       //// client.publish(mqttQueue.c_str(), statePayload.c_str());
+        sendMqttMessageByVariant("OCCUPANCY", statePayload.c_str());
     }
 
     // 2. WEBSOCKET-TIMER (Ihr Original-Timer)
@@ -88,7 +89,8 @@ void sensorDataToWs(AsyncWebSocket &ws, RD03D &radar, volatile bool &personDetec
     //if (!first && json.length() > 0) {
       if (wifiMode == "STA" && sensorid.length() > 0 && mqttActive == true) {
         mqttQueue = mqttQueueSensor + "/attributes";
-        client.publish(mqttQueue.c_str(), json.c_str());
+        ////client.publish(mqttQueue.c_str(), json.c_str());
+        sendMqttMessageByVariant("ATTRIBUTES", json.c_str());
       }
     //}
 
