@@ -15,6 +15,7 @@
 #include "globals.h"         // Lokale Header-Datei laden
 #include "blinker.h"
 #include "pins_config.h"
+#include "mqttService.h"
 LedBlinker wifiBlinker;
 #include <Preferences.h>
 
