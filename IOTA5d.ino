@@ -16,6 +16,7 @@
 #include "blinker.h"
 #include "pins_config.h"
 #include "mqttService.h"
+#include "sensorInit.h"   
 LedBlinker wifiBlinker;
 #include <Preferences.h>
 
@@ -65,7 +66,8 @@ void setup() {
   } else {
     // STA-Normalfall oder AP mit Radar:  In diesen Fällen Asynchroner Webserver!
     getPreferences(prefs);
-    wifiInit(ssid, password, radar, ap_success, sensorid);  // STA mit Radar oder AP mit Radar?
+    wifiInit(ssid, password, ap_success, sensorid);  // STA mit Radar oder AP mit Radar?
+    radarInit(radar);
     if (WiFi.status() != WL_CONNECTED && ap_success == false) {
       // keine Verbindung-> Abbruch
       Serial.println(">>> Keine Verbindung geschafft! <<<");

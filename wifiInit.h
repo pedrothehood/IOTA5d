@@ -17,7 +17,7 @@ void reconnect() {
 }
 
 // init wifi
-void wifiInit(String &ssid, String &password, RD03D &radar, bool &ap_success, String sensorid) {
+void wifiInit(String &ssid, String &password, bool &ap_success, String sensorid) {
   Serial.print("Wifi verbinden");
   WiFi.begin(ssid, password);
   int retry = 0;
@@ -60,21 +60,8 @@ void wifiInit(String &ssid, String &password, RD03D &radar, bool &ap_success, St
     delay(500);
     Serial.print(".");
   }  */
-
-
   Serial.println("\nIP: " + WiFi.localIP().toString());
-  Serial.print("Wifi verbunden, initialisiere Sensor...");
-
-  if (radar.initialize(RD03D::RD03DMode::MULTI_TARGET)) {
-    Serial.println("Sensor erfolgreich initialisiert!");
-  } else {
-    Serial.println("Initialisierung fehlgeschlagen! Check RX/TX & Power.");
-    while (1) {
-      Serial.print(".");
-      delay(1000);
-    }
-  }
+  Serial.print("Wifi verbunden");
 }
-
 
 #endif
