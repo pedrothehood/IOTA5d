@@ -23,6 +23,43 @@ canvas {
     border-radius: 300px 300px 0 0;
 }
 #status { margin-top: 10px; font-size: 0.8rem; }
+
+
+#indicatorContainer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 15px 0;
+    font-size: 0.9rem;
+}
+#radarIndicator {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: #28a745; /* Dauerhaft Grün für OFF */
+    box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+    transition: background-color 0.3s;
+}
+/* Aktiviert die Animation, wenn die Klasse hinzugefügt wird */
+.blink-red {
+    animation: radarAlert 1s infinite steps(2, start);
+}
+
+/* Die Animation wechselt jetzt hart zwischen Rot und Dunkel/Aus */
+@keyframes radarAlert {
+    0%, 49% {
+        background-color: #dc3545;
+        box-shadow: 0 0 15px rgba(220, 53, 69, 0.8);
+    }
+    50%, 100% {
+        background-color: #300000; /* Dunkles Rot (quasi aus) */
+        box-shadow: 0 0 0px rgba(0, 0, 0, 0);
+    }
+}
+
+
+
+
 </style>
     <meta charset="UTF-8">
     <title>RD-03D Radar Monitor</title>
@@ -31,6 +68,11 @@ canvas {
     <h1>RD-03D REALTIME RADAR</h1>
     <canvas id="radar" width="600" height="450"></canvas>
     <div id="status">Verbinde WebSocket...</div>
+    <!-- NEU: Das Indikator-Feld -->
+<div id="indicatorContainer">
+    <div id="radarIndicator"></div>
+    <span id="indicatorText">STANDBY</span>
+</div>
 	<div id="btnDiv">
 	 <button class="btn" id="startBtn">1. AUDIO INITIALISIEREN</button>
 	 <button class="btn" id="muteBtn" disabled>SOUND AUSSCHALTEN</button>
@@ -42,6 +84,8 @@ canvas {
     const canvas = document.getElementById('radar');
     const ctx = canvas.getContext('2d');
     const status = document.getElementById('status');
+const radarIndicator = document.getElementById('radarIndicator');
+const indicatorText = document.getElementById('indicatorText');
     const socket = new WebSocket('ws://' + window.location.hostname + '/ws');
      // NEU: Objekt zum Speichern und Verfolgen der Ziele über Zeit
     let targetHistory = {};   // nach vorne genommen wegen Sound
@@ -234,6 +278,67 @@ function playAlienTrackerSound(distanceCm) {
     socket.onopen = () => status.innerText = 'ONLINE';
     socket.onclose = () => status.innerText = 'OFFLINE';
 
+
+
+socket.onmessage = function(event) {
+    try {
+        const data = JSON.parse(event.data);         
+        const now = Date.now();
+        // const targets = data.targets ? data.targets : data;
+        if (Array.isArray(data.targets)) {
+              const targets = data.targets ? data.targets : data;
+                if (Array.isArray(targets)) {
+                        targets.forEach(t => {
+                            if (t.x === 0 && t.y === 0) return; // Rauschen filtern
+
+                            // Ziel in History speichern oder aktualisieren
+                            targetHistory[t.id] = {
+                                x: t.x,
+                                y: t.y,
+                                s: t.s,
+                                lastSeen: now
+                            };
+                            //const small_y = t.y / 10;
+                            //playAlienTrackerSound(small_y);
+                        });
+                    }
+                    return;
+        }
+    } catch (e) {
+        // Reine Textnachricht verarbeiten
+    }
+
+    const messageType = event.data.trim().toLowerCase();
+
+    if (messageType === "on") {
+     /*   toggleTrackerAudio(false);
+        muteBtn.innerText = "SOUND AUSSCHALTEN";
+        muteBtn.style.backgroundColor = "#6c757d";
+        status.innerText = "Verbunden. Radar aktiv."; */
+        
+        // NEU: Rot blinken aktivieren
+        radarIndicator.classList.add('blink-red');
+        indicatorText.innerText = "TRACKING";
+        indicatorText.style.color = "#dc3545";
+
+    } else if (messageType === "off") {
+      /*  toggleTrackerAudio(true);
+        muteBtn.innerText = "SOUND EINSCHALTEN";
+        muteBtn.style.backgroundColor = "#dc3545";
+        status.innerText = "Verbunden. Radar im Standby.";  */
+        
+        // NEU: Dauerhaft grün schalten
+        radarIndicator.classList.remove('blink-red');
+        indicatorText.innerText = "STANDBY";
+        indicatorText.style.color = "#28a745";
+        
+    } else {
+        status.innerText = "Unbekanntes Datenformat empfangen.";
+    }
+};
+
+
+/*   // old code
     socket.onmessage = (event) => {
         try {
             const data = JSON.parse(event.data);
@@ -259,6 +364,10 @@ function playAlienTrackerSound(distanceCm) {
             console.error('JSON Error', e);
         }
     };
+   */
+
+
+
 
     function drawUI() {
         ctx.strokeStyle = 'rgba(0, 255, 65, 0.15)';
