@@ -10,6 +10,11 @@
   const int  SENSOR_RX = 16;
   const int  SENSOR_TX = 17;
   const int  CONFIG_BUTTON_PIN = 7;  // D5 oder GPIO7
+
+  // DIREKTE MODUS-KONFIGURATION
+// Erlaubte Werte: INPUT (für externen Widerstand) oder INPUT_PULLUP (für internen Widerstand)
+#define CONFIG_BUTTON_MODE INPUT
+
   const int  LED_BLINK_PIN = 6;
 
   /* const int PIN_STATUS_LED = 2;       // Blaue LED auf der Rückseite
