@@ -19,40 +19,55 @@ struct MqttConnection {
   String userid;
   String password;
   int port;
+  bool retain;       
+  String clientid;   
   WiFiClient wifiClient;
   PubSubClient mqttClient;
 };
 
 // Globaler Vektor speichert alle vorbereiteten Verbindungen
-//std::vector<MqttConnection> mqttConnections;
 std::vector<MqttConnection*> mqttConnections;
+
 // REST API Konfiguration
 const char* wifiSsid     = "DEIN_WIFI_SSID";
 const char* wifiPassword = "DEIN_WIFI_PASSWORT";
-//const char* apiKey       = "DEIN_API_KEY";
 
-// Funktions-Prototypen
+// Funktions-Prototypen (Bestehend)
 void initializeMqttConnections(const char* key, const char* sensorId, const char* variant = "");
 String getMqttData(const char* key, const char* sensorId, const char* variant = "");
 void parseAndPrepareConnections(String jsonString);
 void sendMqttMessageByVariant(String variant, String message);
+
+// Funktions-Prototypen für den Empfang (Inbound)
+void globalMqttCallback(char* topic, byte* payload, unsigned int length);
+void subscribeToAllActiveTopics();
+void maintainMqttConnections();
+
+// NEU: Definition des Typs für die externe Funktion
+// Akzeptiert: variant, topic, message
+typedef void (*MqttMessageCallback)(String, String, String);
+
+// NEU: Globaler Zeiger auf die externe Funktion (Standardmässig nullptr)
+MqttMessageCallback externalCallback = nullptr;
+
+// NEU: Funktion, um den externen Callback von ausserhalb anzumelden
+void registerMqttCallback(MqttMessageCallback customFunction);
+
 
 // Holt die JSON-Daten vom PHP REST Service
 String getMqttData(const char* key, const char* sensorId, const char* variant) {
   if (WiFi.status() != WL_CONNECTED) return "";
 
   HTTPClient http;
-  // URL mit Pflichtparametern aufbauen
   String url = "https://mediabegleitung.ch/iotph1/getmqttdata.php?api_key=" + String(key) + "&active=X&sensorid=" + String(sensorId);
   Serial.println(url);
-  // Fakultativer Parameter
   if (variant != nullptr && String(variant).length() > 0) {
     url += "&variant=" + String(variant);
   }
 
   http.begin(url);
   int httpCode = http.GET();
-  
+
   String payload = "";
   if (httpCode == HTTP_CODE_OK) {
     payload = http.getString();
@@ -77,9 +92,8 @@ void parseAndPrepareConnections(String jsonString) {
 
   JsonArray array = doc.as<JsonArray>();
   for (JsonVariant v : array) {
-    // GEÄNDERT: Objekt dynamisch auf dem Heap via 'new' anlegen
     MqttConnection* conn = new MqttConnection();
-    
+
     conn->connid    = v["connid"];
     conn->sensorid  = v["sensorid"].as<String>();
     conn->variant   = v["variant"].as<String>();
@@ -89,33 +103,38 @@ void parseAndPrepareConnections(String jsonString) {
     conn->userid    = v["userid"].as<String>();
     conn->password  = v["password"].as<String>();
     conn->port      = v["port"].as<int>();
+    
+    conn->retain    = (v["retain"].as<String>() == "X");
+    conn->clientid  = v["clientid"].as<String>();
+
+    if (conn->clientid.length() == 0) {
+      conn->clientid = conn->variant;
+    }
 
     if (conn->active) {
-      // Verbindung konfigurieren (Zeiger-Syntax '->' statt '.')
       conn->mqttClient.setClient(conn->wifiClient);
       conn->mqttClient.setServer(conn->brokerurl.c_str(), conn->port);
-      
+
       Serial.printf("Initialisiere Verbindung für Variant %s zu Broker %s\n", conn->variant.c_str(), conn->brokerurl.c_str());
-      if (conn->mqttClient.connect(conn->variant.c_str(), conn->userid.c_str(), conn->password.c_str())) {
-        Serial.printf("Erfolgreich verbunden mit Topic: %s\n", conn->topic.c_str());
+      
+      if (conn->mqttClient.connect(conn->clientid.c_str(), conn->userid.c_str(), conn->password.c_str())) {
+        Serial.printf("Erfolgreich verbunden mit Topic: %s (Client-ID: %s)\n", conn->topic.c_str(), conn->clientid.c_str());
       } else {
         Serial.printf("Verbindung fehlgeschlagen. Status: %d\n", conn->mqttClient.state());
       }
-      
-      // GEÄNDERT: Den Pointer in den Vektor pushen (kein Speicher-Verschieben mehr!)
+
       mqttConnections.push_back(conn);
     } else {
-      // Wenn nicht aktiv, ungenutzten Speicher sofort freigeben
       delete conn;
     }
   }
 }
 
-// Kapselung für das Setup (holt Daten und bereitet Verbindungen vor)
+// Kapselung für das Setup
 void initializeMqttConnections(const char* key, const char* sensorId, const char* variant) {
   Serial.println("Rufe REST Service auf...");
   String jsonResponse = getMqttData(key, sensorId, variant);
-  
+
   if (jsonResponse.length() > 0) {
     parseAndPrepareConnections(jsonResponse);
   } else {
@@ -123,20 +142,84 @@ void initializeMqttConnections(const char* key, const char* sensorId, const char
   }
 }
 
-// Massenversand: Sucht die vorbereitete Verbindung anhand der Variant und sendet sofort
+// Massenversand
 void sendMqttMessageByVariant(String variant, String message) {
-  // GEÄNDERT: Schleife liest nun Pointer aus dem Vektor aus
   for (auto conn : mqttConnections) {
     if (conn->variant == variant && conn->active) {
       if (conn->mqttClient.connected()) {
-        conn->mqttClient.publish(conn->topic.c_str(), message.c_str());
-        //Serial.printf("Nachricht an [%s] gesendet: %s\n", conn->topic.c_str(), message.c_str());
-      } else {
-        //Serial.printf("Senden fehlgeschlagen. Client für %s ist offline.\n", variant.c_str());
+        conn->mqttClient.publish(conn->topic.c_str(), message.c_str(), conn->retain);
       }
       return; 
     }
   }
- // Serial.printf("Keine aktive Verbindung für Variant %s konfiguriert.\n", variant.c_str());
 }
+
+
+// ==========================================
+// FUNKTIONEN FÜR DEN NACHRICHTENEMPFANG
+// ==========================================
+
+/**
+ * Zentrale Callback-Funktion für eingehende MQTT-Nachrichten.
+ */
+void globalMqttCallback(char* topic, byte* payload, unsigned int length) {
+  String message = "";
+  for (unsigned int i = 0; i < length; i++) {
+    message += (char)payload[i];
+  }
+  
+  String incomingTopic = String(topic);
+  String foundVariant = "unknown";
+
+  // Durchsuche die aktiven Verbindungen für das Topic
+  for (auto conn : mqttConnections) {
+    if (conn->active && conn->topic == incomingTopic) {
+      foundVariant = conn->variant;
+      break; 
+    }
+  }
+
+  // GEÄNDERT: Rufe die externe Funktion auf, falls eine registriert wurde
+  if (externalCallback != nullptr) {
+    externalCallback(foundVariant, incomingTopic, message);
+  } else {
+    Serial.println("Warnung: Nachricht empfangen, aber kein externer Callback registriert!");
+  }
+}
+
+/**
+ * Aktiviert den Empfang für alle in der Liste konfigurierten Topics.
+ */
+void subscribeToAllActiveTopics() {
+  for (auto conn : mqttConnections) {
+    if (conn->active && conn->mqttClient.connected()) {
+      conn->mqttClient.setCallback(globalMqttCallback);
+      
+      if (conn->mqttClient.subscribe(conn->topic.c_str())) {
+        Serial.printf("Erfolgreich abonniert: %s\n", conn->topic.c_str());
+      } else {
+        Serial.printf("Abonnement fehlgeschlagen für: %s\n", conn->topic.c_str());
+      }
+    }
+  }
+}
+
+/**
+ * Hält die Hintergrund-Kommunikation für den Empfang aller Clients aufrecht.
+ */
+void maintainMqttConnections() {
+  for (auto conn : mqttConnections) {
+    if (conn->active && conn->mqttClient.connected()) {
+      conn->mqttClient.loop();
+    }
+  }
+}
+
+/**
+ * NEU: Erlaubt es dem Hauptprogramm, seine eigene Verarbeitungsfunktion zu übergeben.
+ */
+void registerMqttCallback(MqttMessageCallback customFunction) {
+  externalCallback = customFunction;
+}
+
 #endif
