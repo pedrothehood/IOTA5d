@@ -48,9 +48,11 @@ RD03D radar(SENSOR_RX, SENSOR_TX, 256000);  // RX, TX, Baudrate
 //AsyncWebSocket ws("/ws");
 //WebServer configServer(80);
 void setup() {
-  Serial.begin(115200);
+  // Warte 2 Sekunden, damit der USB-Port stabil steht, bevor Daten gesendet werden
+  Serial.println("--- ESP32-S3 SuperMini gestartet! ---");
+   delay(4000);
   //pinMode(CONFIG_BUTTON_PIN, INPUT_PULLUP);
-  pinMode(CONFIG_BUTTON_PIN, CONFIG_BUTTON_MODE);  // 10kOhm Widerstand zwischen Pin und 3.3Volt
+  pinMode(CONFIG_BUTTON_+PIN, CONFIG_BUTTON_MODE);  // 10kOhm Widerstand zwischen Pin und 3.3Volt
   delay(1000);
   // 1. Taster-Abfrage beim Start (ca. 2 Sek warten oder sofort prüfen)
   if (digitalRead(CONFIG_BUTTON_PIN) == LOW) {

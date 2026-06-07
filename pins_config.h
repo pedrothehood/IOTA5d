@@ -20,8 +20,8 @@
 
 #elif defined(ESP32_S3_SUPERMINI)
 
-  const int SENSOR_RX = 5;
-  const int SENSOR_TX = 4;
+  const int SENSOR_RX = 4;
+  const int SENSOR_TX = 5;
   const int CONFIG_BUTTON_PIN = 1;  // D5 oder GPIO7
   // Erlaubte Werte: INPUT (für externen Widerstand) oder INPUT_PULLUP (für internen Widerstand)
   #define CONFIG_BUTTON_MODE INPUT_PULLUP  // OHNE externem 10kOhm Widerstand!
