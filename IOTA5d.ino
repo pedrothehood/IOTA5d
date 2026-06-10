@@ -1,4 +1,5 @@
 // Achtung: HTTP_POST könnte auch 3 statt 2 sein!!!!! (in configServer.h)
+#include "pins_config.h"
 #include <ESPAsyncWebServer.h>
 #include <Arduino.h>
 #include <WiFi.h>
@@ -13,7 +14,7 @@
 #include "configServer.h"    // Lokale Header-Datei laden
 #include "globals.h"         // Lokale Header-Datei laden
 #include "blinker.h"
-#include "pins_config.h"
+//#include "pins_config.h"   // nach vorne wegen Auflösungsreihenfolge der Preprozessor-Befehle
 #include "mqttService.h"
 #include "sensorInit.h"   
 LedBlinker wifiBlinker;
