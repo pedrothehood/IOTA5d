@@ -65,13 +65,13 @@ canvas {
     <title>RD-03D Radar Monitor</title>
 </head>
 <body>
-    <h1>Radardaten</h1>
+    <h1 id="sensoridText">Radar</h1>
     <canvas id="radar" width="600" height="450"></canvas>
-    <div id="status">Verbinde WebSocket...</div>
+    <span id="status">Verbinde WebSocket...</span><span id="macAddress"></span>
     <!-- NEU: Das Indikator-Feld -->
 <div id="indicatorContainer">
     <div id="radarIndicator"></div>
-    <span id="indicatorText">STANDBY</span>
+    <span id="indicatorText">STANDBY</span> 
 </div>
 	<div id="btnDiv">
 	 <button class="btn" id="startBtn">1. AUDIO INITIALISIEREN</button>
@@ -84,8 +84,26 @@ canvas {
     const canvas = document.getElementById('radar');
     const ctx = canvas.getContext('2d');
     const status = document.getElementById('status');
+    const seitentitel = document.getElementById('seiten-titel');
 const radarIndicator = document.getElementById('radarIndicator');
 const indicatorText = document.getElementById('indicatorText');
+//const sensoridText = document.getElementById('sensoridText');
+
+ window.onload = function() {
+      fetch('/api/sensorid')
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById("sensoridText").innerText = "Sensor " + data;
+        });
+         fetch('/api/macaddress')
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById("macAddress").innerText = "mac " + data;
+        });
+    };
+
+
+
     const socket = new WebSocket('ws://' + window.location.hostname + '/ws');
      // NEU: Objekt zum Speichern und Verfolgen der Ziele über Zeit
     let targetHistory = {};   // nach vorne genommen wegen Sound
@@ -309,6 +327,7 @@ socket.onmessage = function(event) {
     }
 
     const messageType = event.data.trim().toLowerCase();
+    const messageTypeBig = event.data.trim();
 
     if (messageType === "on") {
      /*   toggleTrackerAudio(false);
@@ -333,7 +352,12 @@ socket.onmessage = function(event) {
         indicatorText.style.color = "#28a745";
         
     } else {
-        status.innerText = "Unbekanntes Datenformat empfangen.";
+         seitentitel.textContent = messageTypeBig;
+          seitentitel.innerText = messageTypeBig;
+ //         sensoridText.innerText = messageTypeBig;
+          //alert(messageTypeBig);
+         //console.log(messageTypeBig);
+        //status.innerText = "Unbekanntes Datenformat empfangen.";
     }
 };
 

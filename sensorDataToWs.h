@@ -1,3 +1,4 @@
+#include "HardwareSerial.h"
 #ifndef SENSOR_DATA_TO_WS_H
 #define SENSOR_DATA_TO_WS_H
 #include <Arduino.h>  // Wichtig, um Arduino-Befehle wie digitalWrite zu nutzen
@@ -16,6 +17,7 @@ void sensorDataToWs(AsyncWebSocket &ws, RD03D &radar, volatile bool &personDetec
   unsigned long now = millis();
   static unsigned long lastWSUpdate = 0;
   static unsigned long lastMqttPublish = 0;  // Unabhängiger MQTT-Timer
+  //static bool veryFirstTime = true;
   //static bool veryFirstTime = true;
   // Statische Variable, um den Zustand des vorherigen Durchlaufs zu speichern
   static bool lastPersonDetected = false;
@@ -56,19 +58,19 @@ void sensorDataToWs(AsyncWebSocket &ws, RD03D &radar, volatile bool &personDetec
       json = "{\"targets\":[]}";  // Definiert leeres Array für MQTT/WS bei Inaktivität
     }
   }
- String statePayload = personDetected ? "on" : "off";
+  String statePayload = personDetected ? "on" : "off";
   // 2. SOFORTIGES MQTT-SENDEN BEI STATUSÄNDERUNG (Echtzeit)
   if (firstRadarDataDone) {  // zuerst müssen die Radardaten einmal korrekt gesendet worden sein!
     if (personDetected != lastPersonDetected) {
       lastPersonDetected = personDetected;  // Zustand aktualisieren
-     // String statePayload = personDetected ? "on" : "off";
+                                            // String statePayload = personDetected ? "on" : "off";
       mqttQueue = mqttQueueSensor + "/occupancy";
       //String stateTopic = mqttQueue.c_str() + "/occupancy";
       //// client.publish(mqttQueue.c_str(), statePayload.c_str());
       sendMqttMessageByVariant("OCCUPANCY", statePayload.c_str());
       //Serial.print("statePayload = ");
-       // Serial.println(statePayload);
-     // if (ws.count() > 0 && ws.availableForWriteAll()) {
+      // Serial.println(statePayload);
+      // if (ws.count() > 0 && ws.availableForWriteAll()) {
       //  ws.textAll(statePayload);
       //  Serial.print("statePayload = ");
       //  Serial.println(statePayload);

@@ -105,7 +105,7 @@ void setup() {
     }
   }
   pinMode(wifiBlinker.pin, OUTPUT);
-  serverInit(server, ws);
+  serverInit(server, ws, sensorid);
   // static TargetData*  ptrTarget ; //= radar.getTarget();    // get pointer to first target ( SINGLE DETECTION )
   // static bool detected = false;
   //sensorDataToWs(ws,radar,personDetected,targetDistance,isMoving);
