@@ -3,8 +3,8 @@
 
 // --- Board-Auswahl ---
 // nur ein Profil aktivieren !!!!!
-//#define YD_ESP32_S3
-#define ESP32_S3_SUPERMINI
+#define YD_ESP32_S3
+//#define ESP32_S3_SUPERMINI
 
 // ==========================================
 // KONFIGURATION DER PINS JE NACH BOARD

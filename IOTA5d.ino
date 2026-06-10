@@ -1,8 +1,7 @@
 // Achtung: HTTP_POST könnte auch 3 statt 2 sein!!!!! (in configServer.h)
-
+#include <ESPAsyncWebServer.h>
 #include <Arduino.h>
 #include <WiFi.h>
-#include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
 #include <RD03D.h>
 #include <websiteRadar2.h>
@@ -48,11 +47,19 @@ RD03D radar(SENSOR_RX, SENSOR_TX, 256000);  // RX, TX, Baudrate
 //AsyncWebSocket ws("/ws");
 //WebServer configServer(80);
 void setup() {
+  Serial.begin(115200);
+   while(!Serial) { delay(10); } // Wartet aktiv, bis der PC den USB-Port wieder geöffnet hat!
+  // Verhindert das Einfrieren, falls der USB-Puffer voll ist:
+  //Serial.setTxTimeoutMs(0); 
+   // Wartet maximal 3 Sekunden, bis der Serielle Monitor am PC geöffnet wird
+  while (!Serial && millis() < 4000) {
+    delay(10);
+  }
   // Warte 2 Sekunden, damit der USB-Port stabil steht, bevor Daten gesendet werden
-  Serial.println("--- ESP32-S3 SuperMini gestartet! ---");
-   delay(4000);
+  Serial.println("--- ESP32-S3 gestartet! ---");
+   delay(2000);
   //pinMode(CONFIG_BUTTON_PIN, INPUT_PULLUP);
-  pinMode(CONFIG_BUTTON_+PIN, CONFIG_BUTTON_MODE);  // 10kOhm Widerstand zwischen Pin und 3.3Volt
+  pinMode(CONFIG_BUTTON_PIN, CONFIG_BUTTON_MODE);  // 10kOhm Widerstand zwischen Pin und 3.3Volt
   delay(1000);
   // 1. Taster-Abfrage beim Start (ca. 2 Sek warten oder sofort prüfen)
   if (digitalRead(CONFIG_BUTTON_PIN) == LOW) {

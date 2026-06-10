@@ -19,14 +19,22 @@ void reconnect() {
 // init wifi
 void wifiInit(String &ssid, String &password, bool &ap_success, String sensorid) {
   Serial.print("Wifi verbinden");
+  // V3-Fix: Sicherstellen, dass alte Verbindungen sauber getrennt sind
+  WiFi.disconnect(true, true);
+  delay(100);
+  WiFi.mode(WIFI_STA);  // Explizit als Station starten
   WiFi.begin(ssid, password);
   int retry = 0;
   while (WiFi.status() != WL_CONNECTED && retry < 10) {
     delay(500);
+    Serial.print(".");
     retry++;
   }
   if (WiFi.status() != WL_CONNECTED) {
-
+    Serial.println("\nSTA fehlgeschlagen. Schalte um auf AP...");
+    // V3-Fix: STA-Modus sauber beenden, bevor AP gestartet wird!
+    WiFi.disconnect(true);
+    delay(200);
     // AP versuchen:
     WiFi.mode(WIFI_AP);
     ap_success = WiFi.softAP("WT32_SETUP");
@@ -45,7 +53,7 @@ void wifiInit(String &ssid, String &password, bool &ap_success, String sensorid)
     Serial.println(">>> MODUS: STA RADAR <<<");
     wifiMode = "STA";
     // mDNS starten (Hostname: mein-esp32.local)
-    if (sensorid > "") {
+    if (sensorid.length() > 0) {
       if (!MDNS.begin(sensorid)) {
         Serial.println("Fehler beim Starten von mDNS");
       } else {
@@ -54,14 +62,14 @@ void wifiInit(String &ssid, String &password, bool &ap_success, String sensorid)
     }
   }
 
-
-  /*
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }  */
-  Serial.println("\nIP: " + WiFi.localIP().toString());
-  Serial.print("Wifi verbunden");
+// V3-Fix: IP nur ausgeben, wenn wir nicht im fehlerhaften AP-Modus sind
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("IP (STA): " + WiFi.localIP().toString());
+  } else if (wifiMode == "AP") {
+    Serial.println("IP (AP): " + WiFi.softAPIP().toString());
+  }
+  
+  Serial.println("Wifi-Initialisierung beendet.");
 }
 
 #endif

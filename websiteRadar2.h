@@ -65,7 +65,7 @@ canvas {
     <title>RD-03D Radar Monitor</title>
 </head>
 <body>
-    <h1>RD-03D REALTIME RADAR</h1>
+    <h1>Radardaten</h1>
     <canvas id="radar" width="600" height="450"></canvas>
     <div id="status">Verbinde WebSocket...</div>
     <!-- NEU: Das Indikator-Feld -->
