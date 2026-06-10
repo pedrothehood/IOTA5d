@@ -6,16 +6,17 @@
 #define YD_ESP32_S3
 //#define ESP32_S3_SUPERMINI
 
+// ==========================================
 // Auswahl der Funktions-Gruppen:
-
+// ==========================================
 // nur a1) oder a2) sind möglich!
 // a1) Wird das Einlesen der Radardaten durch den Sensor RD-03D unterstützt?
 #define ENABLE_RD_03D_READ  1 // Deine Konfigurationsvariable
 // a2) Wird das Einlesen von MQTT-Daten unterstützt ?  
-#define ENABLE_MQTT_READ  1 // Deine Konfigurationsvariable
+#define ENABLE_MQTT_READ  0 // Deine Konfigurationsvariable
 
 
-// im Code:
+// im Code (Beispiel):
 #if (ENABLE_RD_03D_READ == 1)
     // Dieser Code wird nur kompiliert, wenn Feature X aktiv ist
     ////void debugFunction();
@@ -26,8 +27,11 @@
 // ==========================================
 #if defined(YD_ESP32_S3)
 
+#if (ENABLE_RD_03D_READ == 1)
   const int SENSOR_RX = 16;
   const int SENSOR_TX = 17;
+#endif
+
   const int CONFIG_BUTTON_PIN = 7;  // D5 oder GPIO7
   // Erlaubte Werte: INPUT (für externen Widerstand) oder INPUT_PULLUP (für internen Widerstand)
   #define CONFIG_BUTTON_MODE INPUT  // MIT externem 10kOhm Widerstand!

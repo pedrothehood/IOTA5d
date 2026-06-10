@@ -4,19 +4,26 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <ArduinoJson.h>
+
+#if (ENABLE_RD_03D_READ == 1)
 #include <RD03D.h>
+#include "sensorInit.h"
+#endif
+
 #include <websiteRadar2.h>
 #include <ArduinoOTA.h>
 #include "buzzerTask.h"      // Lokale Header-Datei laden
 #include "serverInit.h"      // Lokale Header-Datei laden
+#if (ENABLE_RD_03D_READ == 1)
 #include "sensorDataToWs.h"  // Lokale Header-Datei laden
+#endif
 #include "wifiInit.h"        // Lokale Header-Datei laden
 #include "configServer.h"    // Lokale Header-Datei laden
 #include "globals.h"         // Lokale Header-Datei laden
 #include "blinker.h"
 //#include "pins_config.h"   // nach vorne wegen Auflösungsreihenfolge der Preprozessor-Befehle
 #include "mqttService.h"
-#include "sensorInit.h"   
+//#include "sensorInit.h"    // nach vorne
 LedBlinker wifiBlinker;
 #include <Preferences.h>
 
@@ -42,23 +49,26 @@ bool ap_success;
 unsigned long buttonPressedTime = 0;
 bool buttonIsPressed = false;
 
+#if (ENABLE_RD_03D_READ == 1)
 // RD03D radar(Serial1);
 RD03D radar(SENSOR_RX, SENSOR_TX, 256000);  // RX, TX, Baudrate
+#endif
+
 //AsyncWebServer server(81);           // TEST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 //AsyncWebSocket ws("/ws");
 //WebServer configServer(80);
 void setup() {
   Serial.begin(115200);
-   while(!Serial) { delay(10); } // Wartet aktiv, bis der PC den USB-Port wieder geöffnet hat!
+  while (!Serial) { delay(10); }  // Wartet aktiv, bis der PC den USB-Port wieder geöffnet hat!
   // Verhindert das Einfrieren, falls der USB-Puffer voll ist:
-  //Serial.setTxTimeoutMs(0); 
-   // Wartet maximal 3 Sekunden, bis der Serielle Monitor am PC geöffnet wird
+  //Serial.setTxTimeoutMs(0);
+  // Wartet maximal 3 Sekunden, bis der Serielle Monitor am PC geöffnet wird
   while (!Serial && millis() < 4000) {
     delay(10);
   }
   // Warte 2 Sekunden, damit der USB-Port stabil steht, bevor Daten gesendet werden
   Serial.println("--- ESP32-S3 gestartet! ---");
-   delay(2000);
+  delay(2000);
   //pinMode(CONFIG_BUTTON_PIN, INPUT_PULLUP);
   pinMode(CONFIG_BUTTON_PIN, CONFIG_BUTTON_MODE);  // 10kOhm Widerstand zwischen Pin und 3.3Volt
   delay(1000);
@@ -76,8 +86,12 @@ void setup() {
   } else {
     // STA-Normalfall oder AP mit Radar:  In diesen Fällen Asynchroner Webserver!
     getPreferences(prefs);
+   
     wifiInit(ssid, password, ap_success, sensorid);  // STA mit Radar oder AP mit Radar?
+    #if (ENABLE_RD_03D_READ == 1)
     radarInit(radar);
+    #endif
+
     if (WiFi.status() != WL_CONNECTED && ap_success == false) {
       // keine Verbindung-> Abbruch
       Serial.println(">>> Keine Verbindung geschafft! <<<");
@@ -121,7 +135,7 @@ void loop() {
   }
 
   if (mqttActive == true) {
-    // Hält alle aktiven MQTT-Verbindungen am Leben
+    // Hält alle aktiven MQTT-Verbindungen am Leben   ----->>>>>>>>>>>> CHECK für Receive!!!!
     for (auto conn : mqttConnections) {
       if (conn != nullptr && conn->active) {
         conn->mqttClient.loop();
@@ -186,5 +200,7 @@ void loop() {
     //  client.loop();
     //}
   }
+  #if (ENABLE_RD_03D_READ == 1)
   sensorDataToWs(ws, radar, personDetected, targetDistance, isMoving, sensorid);
+  #endif
 }
