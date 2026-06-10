@@ -396,7 +396,7 @@ socket.onmessage = function(event) {
     function drawUI() {
         ctx.strokeStyle = 'rgba(0, 255, 65, 0.15)';
         ctx.lineWidth = 1;
-        ctx.font = '20px monospace';
+        ctx.font = '15px monospace';
         
         const scale = 15;
         const originX = 300;
