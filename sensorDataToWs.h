@@ -1,6 +1,7 @@
-#include "HardwareSerial.h"
+//#include "HardwareSerial.h"
 #ifndef SENSOR_DATA_TO_WS_H
 #define SENSOR_DATA_TO_WS_H
+#include "HardwareSerial.h"
 #include <Arduino.h>  // Wichtig, um Arduino-Befehle wie digitalWrite zu nutzen
 #include "mqttService.h"
 #include "globals.h"  // Lokale Header-Datei laden

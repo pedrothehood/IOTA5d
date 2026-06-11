@@ -4,7 +4,7 @@
 // Falls index_html in einer anderen .cpp/.ino Datei definiert ist, 
 // müssen wir dem Compiler hier sagen, dass es existiert:
 extern const char index_html[] PROGMEM; 
-
+extern  String radarDataOrigin;
 // Init Server
 void serverInit(AsyncWebServer &server, AsyncWebSocket &ws, String sensorid) {
   Serial.print("Server-Handling/Add Handler/Server.on/server.begin");
@@ -23,6 +23,10 @@ void serverInit(AsyncWebServer &server, AsyncWebSocket &ws, String sensorid) {
   // Liefert den Wert genau einmal nach dem Laden der Seite
   server.on("/api/macaddress", HTTP_GET, [macAddress](AsyncWebServerRequest *request){
     request->send(200, "text/plain", macAddress);
+  });
+
+    server.on("/api/radardataorigin", HTTP_GET, [radarDataOrigin](AsyncWebServerRequest *request){
+    request->send(200, "text/plain",radarDataOrigin);
   });
 
 // WiFi.macAddress()

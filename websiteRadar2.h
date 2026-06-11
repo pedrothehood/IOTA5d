@@ -87,6 +87,7 @@ canvas {
     const seitentitel = document.getElementById('seiten-titel');
 const radarIndicator = document.getElementById('radarIndicator');
 const indicatorText = document.getElementById('indicatorText');
+    radarDataOrigin = "";
 //const sensoridText = document.getElementById('sensoridText');
 
  window.onload = function() {
@@ -99,6 +100,14 @@ const indicatorText = document.getElementById('indicatorText');
         .then(response => response.text())
         .then(data => {
           document.getElementById("macAddress").innerText = "mac " + data;
+        });
+        // Wo sind die Daten her?
+          fetch('/api/radardataorigin')
+        .then(response => response.text())
+        .then(data => {
+          radarDataOrigin = data;
+          if (radarDataOrigin = "MQTT")  MAX_TIMEOUT_MS = MAX_TIMEOUT_MQTT;
+          render();    // erst ab hier rendern, sonst werden die Daten nicht geladen
         });
     };
 
@@ -291,8 +300,9 @@ function playAlienTrackerSound(distanceCm) {
 
     // NEU: Objekt zum Speichern und Verfolgen der Ziele über Zeit
    // let targetHistory = {}; 
-    const MAX_TIMEOUT_MS = 500; // Maximale Haltezeit (0.5 Sekunden)
-
+    let MAX_TIMEOUT_MS = 500;
+    let MAX_TIMEOUT_MQTT = 5000;
+    MAX_TIMEOUT_MS = (radarDataOrigin == "MQTT") ? MAX_TIMEOUT_MQTT : MAX_TIMEOUT_MS;
     socket.onopen = () => status.innerText = 'ONLINE';
     socket.onclose = () => status.innerText = 'OFFLINE';
 
@@ -441,6 +451,11 @@ socket.onmessage = function(event) {
 
     function render() {
         // Sanfter Motion Blur
+        if (radarDataOrigin == "MQTT"){
+             ctx.fillStyle = 'rgba(5, 5, 5, 0.005)';
+        }else{
+               ctx.fillStyle = 'rgba(5, 5, 5, 0.3)';
+        }
         ctx.fillStyle = 'rgba(5, 5, 5, 0.2)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -452,13 +467,13 @@ socket.onmessage = function(event) {
         Object.keys(targetHistory).forEach(id => {
             const t = targetHistory[id];
             const age = now - t.lastSeen;
-
-            // NEU: Zu alte Ziele sofort aus dem Speicher löschen
-            if (age > MAX_TIMEOUT_MS) {
-                delete targetHistory[id];
-                return;
-            }
-
+     
+             // NEU: Zu alte Ziele sofort aus dem Speicher löschen
+                if (age > MAX_TIMEOUT_MS) {
+                    delete targetHistory[id];
+                    return;
+                }
+                      
             // Berechne Schwindungs-Faktor (1.0 = frisch, gegen 0.0 = verschwindend)
             const fadeAlpha = 1.0 - (age / MAX_TIMEOUT_MS);
 
@@ -507,7 +522,7 @@ socket.onmessage = function(event) {
         requestAnimationFrame(render);
     }
 
-    render();
+    //render();
 </script>
 </body>
 </html>

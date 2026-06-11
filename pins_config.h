@@ -1,23 +1,30 @@
 // Pins Boardübergreifend definieren
 #pragma once
-
+#include <Arduino.h>
+ //String radarDataOrigin = "";
 // --- Board-Auswahl ---
 // nur ein Profil aktivieren !!!!!
 #define YD_ESP32_S3
 //#define ESP32_S3_SUPERMINI
 
 // ==========================================
-// Auswahl der Funktions-Gruppen:
+// Auswahl der Funktions-Gruppen: ACHTUNG: PULLUP-Widerstand für Taster weiter hinten einstellen!!!!
 // ==========================================
 // nur a1) oder a2) sind möglich!
 // a1) Wird das Einlesen der Radardaten durch den Sensor RD-03D unterstützt?
-#define ENABLE_RD_03D_READ  1 // Deine Konfigurationsvariable
+#define ENABLE_RD_03D_READ  0 // Modus "Radardaten" erzeugen und MQTT erstellen  -> Radardaten darstellen
 // a2) Wird das Einlesen von MQTT-Daten unterstützt ?  
-#define ENABLE_MQTT_READ  0 // Deine Konfigurationsvariable
+#define ENABLE_MQTT_READ  1 // Modus MQTT-Radardaten einlesen  -> Radardaten darstellen (ohne Sensor)
 
 
 // im Code (Beispiel):
 #if (ENABLE_RD_03D_READ == 1)
+    String radarDataOrigin = "SENSOR";
+    // Dieser Code wird nur kompiliert, wenn Feature X aktiv ist
+    ////void debugFunction();
+#endif
+#if (ENABLE_MQTT_READ == 1)
+     String radarDataOrigin = "MQTT";
     // Dieser Code wird nur kompiliert, wenn Feature X aktiv ist
     ////void debugFunction();
 #endif
@@ -32,9 +39,11 @@
   const int SENSOR_TX = 17;
 #endif
 
-  const int CONFIG_BUTTON_PIN = 7;  // D5 oder GPIO7
+  const int CONFIG_BUTTON_PIN = 7;  // D5 oder GPIO7   auf RD06_MQ_01 kaputt ?
+// const int CONFIG_BUTTON_PIN = 21; // nur für RD06_MQ_01 ????
   // Erlaubte Werte: INPUT (für externen Widerstand) oder INPUT_PULLUP (für internen Widerstand)
-  #define CONFIG_BUTTON_MODE INPUT  // MIT externem 10kOhm Widerstand!
+ // #define CONFIG_BUTTON_MODE INPUT_PULLUP  // OHNE externem 10kOhm Widerstand!
+   #define CONFIG_BUTTON_MODE INPUT  // MIT externem 10kOhm Widerstand!
   const int LED_BLINK_PIN = 6;
 
 #elif defined(ESP32_S3_SUPERMINI)
@@ -43,7 +52,8 @@
   const int SENSOR_TX = 5;
   const int CONFIG_BUTTON_PIN = 1;  // D5 oder GPIO7
   // Erlaubte Werte: INPUT (für externen Widerstand) oder INPUT_PULLUP (für internen Widerstand)
-  #define CONFIG_BUTTON_MODE INPUT_PULLUP  // OHNE externem 10kOhm Widerstand!
+ #define CONFIG_BUTTON_MODE INPUT_PULLUP  // OHNE externem 10kOhm Widerstand!
+ //  #define CONFIG_BUTTON_MODE INPUT  // MIT externem 10kOhm Widerstand!
   const int LED_BLINK_PIN = 2;
 
 #else

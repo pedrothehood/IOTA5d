@@ -17,6 +17,11 @@
 #if (ENABLE_RD_03D_READ == 1)
 #include "sensorDataToWs.h"  // Lokale Header-Datei laden
 #endif
+//ENABLE_MQTT_READ
+#if (ENABLE_MQTT_READ == 1)
+#include "mqttDataToWs.h"  // Lokale Header-Datei laden
+#endif
+
 #include "wifiInit.h"        // Lokale Header-Datei laden
 #include "configServer.h"    // Lokale Header-Datei laden
 #include "globals.h"         // Lokale Header-Datei laden
@@ -59,16 +64,17 @@ RD03D radar(SENSOR_RX, SENSOR_TX, 256000);  // RX, TX, Baudrate
 //WebServer configServer(80);
 void setup() {
   Serial.begin(115200);
-  while (!Serial) { delay(10); }  // Wartet aktiv, bis der PC den USB-Port wieder geöffnet hat!
+  ////while (!Serial) { delay(10); }  // Wartet aktiv, bis der PC den USB-Port wieder geöffnet hat!
   // Verhindert das Einfrieren, falls der USB-Puffer voll ist:
   //Serial.setTxTimeoutMs(0);
   // Wartet maximal 3 Sekunden, bis der Serielle Monitor am PC geöffnet wird
-  while (!Serial && millis() < 4000) {
-    delay(10);
-  }
+  delay(1000);
+  //while (!Serial && millis() < 4000) {
+    //delay(10);
+ // }
   // Warte 2 Sekunden, damit der USB-Port stabil steht, bevor Daten gesendet werden
   Serial.println("--- ESP32-S3 gestartet! ---");
-  delay(2000);
+ // delay(2000);
   //pinMode(CONFIG_BUTTON_PIN, INPUT_PULLUP);
   pinMode(CONFIG_BUTTON_PIN, CONFIG_BUTTON_MODE);  // 10kOhm Widerstand zwischen Pin und 3.3Volt
   delay(1000);
@@ -117,6 +123,12 @@ void setup() {
       // 1. MQTT-Verbindungen über API-Daten vorbereiten und starten
       // Aufruf-Beispiel mit API-Key, SensorID "TEST1" und ohne optionale Variant
       initializeMqttConnections(apiKey.c_str(), sensorid.c_str());
+
+      #if (ENABLE_MQTT_READ == 1)
+      registerMqttCallback(mqttDataToWs);
+      // Empfang starten
+      subscribeToAllActiveTopics();
+      #endif
     }
   }
   pinMode(wifiBlinker.pin, OUTPUT);
