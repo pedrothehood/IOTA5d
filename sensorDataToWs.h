@@ -95,7 +95,7 @@ void sensorDataToWs(AsyncWebSocket &ws, RD03D &radar, volatile bool &personDetec
   }
 
   // 3. MQTT-TIMER (Ihr Original-Timer nutzt nun das befüllte JSON)
-  if (now - lastMqttPublish > 5000) {  // Intervall nach Bedarf anpassen
+  if (now - lastMqttPublish > mqttint) {  // Intervall nach Bedarf anpassen
     lastMqttPublish = now;
 
     // Hier Ihren MQTT-Sende-Befehl einfügen, z.B.:

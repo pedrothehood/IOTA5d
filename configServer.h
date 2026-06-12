@@ -18,6 +18,8 @@ void getPreferences(Preferences &prefs) {
   ssid = prefs.getString("ssid", "");
   password = prefs.getString("pass", "");
   servername = prefs.getString("srv", "");
+   mqttint = prefs.getString("mqttint", "5000").toInt(); 
+   mqttintString = String(mqttint);
   // mac = prefs.getString("mac", "");
   prefs.end();
 }
@@ -90,6 +92,7 @@ void handleRoot(WebServer &server, Preferences &prefs) {
   html += "<label>SSID:</label> <input type='text' name='ssid' value='" + ssid + "'>";
   html += "<label>Passwort:</label> <input type='password' name='password' value='" + password + "'>";
   html += "<label>Servername:</label> <input type='text' name='servername' value='" + servername + "'>";
+  html += "<label>MQTT Intervall (ms):</label> <input type=\"number\" name=\"mqttint\" value=\"" + mqttintString + "\">";
   html += "<label>Macadresse:</label> <input type='text' name='mac' value='%%MAC%%' readonly>";
   html += "<input type='submit' value='Speichern und Neustarten'>";
   html += "</form></div></body></html>";
@@ -119,7 +122,8 @@ void handleSave(WebServer &server, Preferences &prefs) {
     prefs.putString("ssid", server.arg("ssid"));
     prefs.putString("pass", server.arg("password"));
     prefs.putString("srv", server.arg("servername"));
-
+    //prefs.putString("srv", server.arg("servername"));
+    prefs.putString("mqttint", server.arg("mqttint"));
     prefs.end();
 
     String msg = "<html><body><h1>Erfolgreich gespeichert!</h1>";

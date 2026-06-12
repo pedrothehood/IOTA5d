@@ -92,6 +92,8 @@ canvas {
 const radarIndicator = document.getElementById('radarIndicator');
 const indicatorText = document.getElementById('indicatorText');
     radarDataOrigin = "";
+    mqttint = 0;
+    mqttintString = "";
 //const sensoridText = document.getElementById('sensoridText');
 
  window.onload = function() {
@@ -105,6 +107,14 @@ const indicatorText = document.getElementById('indicatorText');
         .then(data => {
           document.getElementById("macAddress").innerText = " mac " + data;
         });
+          fetch('/api/mqttint')
+        .then(response => response.text())
+        .then(data => {
+            mqttintString = data;
+            mqttint =  Number(mqttintString);
+            MAX_TIMEOUT_MQTT = mqttint;
+        });
+
         // Wo sind die Daten her?
           fetch('/api/radardataorigin')
         .then(response => response.text())
@@ -112,9 +122,9 @@ const indicatorText = document.getElementById('indicatorText');
           radarDataOrigin = data;
           if (radarDataOrigin = "MQTT")  MAX_TIMEOUT_MS = MAX_TIMEOUT_MQTT;
             if (radarDataOrigin = "MQTT")  {
-             document.getElementById("processMode").innerText = " Mode:MQTT";
+             document.getElementById("processMode").innerText = " Mode: MQTT";
              }else{
-                  document.getElementById("processMode").innerText = " Mode:SENSOR";
+                  document.getElementById("processMode").innerText = " Mode: SENSOR";
              }
           render();    // erst ab hier rendern, sonst werden die Daten nicht geladen
         });

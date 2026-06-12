@@ -5,7 +5,8 @@
 // müssen wir dem Compiler hier sagen, dass es existiert:
 extern const char index_html[] PROGMEM; 
 extern  String radarDataOrigin;
-
+extern unsigned long mqttint ;  // mqtt Intervall-Zeit
+extern String mqttintString;
 // Init Server
 void serverInit(AsyncWebServer &server, AsyncWebSocket &ws, String sensorid) {
   Serial.print("Server-Handling/Add Handler/Server.on/server.begin");
@@ -25,10 +26,14 @@ void serverInit(AsyncWebServer &server, AsyncWebSocket &ws, String sensorid) {
   server.on("/api/macaddress", HTTP_GET, [macAddress](AsyncWebServerRequest *request){
     request->send(200, "text/plain", macAddress);
   });
-
+  
+   server.on("/api/mqttint", HTTP_GET, [mqttintString](AsyncWebServerRequest *request){
+    request->send(200, "text/plain",mqttintString);
+  });
     server.on("/api/radardataorigin", HTTP_GET, [radarDataOrigin](AsyncWebServerRequest *request){
     request->send(200, "text/plain",radarDataOrigin);
   });
+
 
 // WiFi.macAddress()
 
