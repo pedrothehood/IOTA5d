@@ -57,7 +57,11 @@ canvas {
     }
 }
 
-
+.span-container {
+    display: flex;
+    flex-direction: row; /* Richtet die Spans nebeneinander aus */
+    gap: 10px;           /* Erzeugt 10px Abstand zwischen den Spans */
+}
 
 
 </style>
@@ -67,7 +71,7 @@ canvas {
 <body>
     <h1 id="sensoridText">Radar</h1>
     <canvas id="radar" width="600" height="450"></canvas>
-    <span id="status">Verbinde WebSocket...</span><span id="macAddress"></span>
+    <div ><span id="status">Verbinde WebSocket...</span><span id="macAddress"></span><span id="processMode"></span></div>
     <!-- NEU: Das Indikator-Feld -->
 <div id="indicatorContainer">
     <div id="radarIndicator"></div>
@@ -99,7 +103,7 @@ const indicatorText = document.getElementById('indicatorText');
          fetch('/api/macaddress')
         .then(response => response.text())
         .then(data => {
-          document.getElementById("macAddress").innerText = "mac " + data;
+          document.getElementById("macAddress").innerText = " mac " + data;
         });
         // Wo sind die Daten her?
           fetch('/api/radardataorigin')
@@ -107,6 +111,11 @@ const indicatorText = document.getElementById('indicatorText');
         .then(data => {
           radarDataOrigin = data;
           if (radarDataOrigin = "MQTT")  MAX_TIMEOUT_MS = MAX_TIMEOUT_MQTT;
+            if (radarDataOrigin = "MQTT")  {
+             document.getElementById("processMode").innerText = " Mode:MQTT";
+             }else{
+                  document.getElementById("processMode").innerText = " Mode:SENSOR";
+             }
           render();    // erst ab hier rendern, sonst werden die Daten nicht geladen
         });
     };

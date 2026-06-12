@@ -5,6 +5,7 @@
 // müssen wir dem Compiler hier sagen, dass es existiert:
 extern const char index_html[] PROGMEM; 
 extern  String radarDataOrigin;
+
 // Init Server
 void serverInit(AsyncWebServer &server, AsyncWebSocket &ws, String sensorid) {
   Serial.print("Server-Handling/Add Handler/Server.on/server.begin");

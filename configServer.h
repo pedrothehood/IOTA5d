@@ -7,6 +7,7 @@
 #include <Preferences.h>
 #include "blinker.h"
 #include "pins_config.h"
+#include <esp_mac.h>
 LedBlinker configBlinker;
 void getPreferences(Preferences &prefs) {
 
@@ -20,7 +21,17 @@ void getPreferences(Preferences &prefs) {
   // mac = prefs.getString("mac", "");
   prefs.end();
 }
-
+String getHardwareMac() {
+    uint8_t mac[6];
+    // Liest die MAC-Adresse direkt aus dem Hardware-Register (eFuse)
+    if (esp_read_mac(mac, ESP_MAC_WIFI_STA) == ESP_OK) {
+        char macStr[18];
+        snprintf(macStr, sizeof(macStr), "%02X:%02X:%02X:%02X:%02X:%02X", 
+                 mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+        return String(macStr);
+    }
+    return "00:00:00:00:00:00";
+}
 void handleRoot(WebServer &server, Preferences &prefs) {
   getPreferences(prefs);
   /* String html = "<html><head><meta charset='UTF-8'><style>";
@@ -61,10 +72,12 @@ void handleRoot(WebServer &server, Preferences &prefs) {
   html += "<label>SSID:</label> <input type='text' name='ssid' value='" + ssid + "'><br>";
   html += "<label>Passwort:</label> <input type='password' name='password' value='" + password + "'><br>";
   html += "<label>Servername:</label> <input type='text' name='servername' value='" + servername + "'><br>";
-  html += "<label>Macadresse:</label> <input type='text' name='mac' value='" + WiFi.macAddress() + "' readonly><br>";
+  html += "<label>Macadresse:</label> <input type='text' name='mac' value='%%MAC%%' readonly><br>";
   html += "<br><input type='submit' value='Speichern und Neustarten'>";
   html += "</form></div></body></html>";
-
+ // html.replace("%%MAC%%", WiFi.macAddress());
+  // Nutzt jetzt die zuverlässige Hardware-Auslesung
+html.replace("%%MAC%%", getHardwareMac());
   server.send(200, "text/html", html);
 }
 
@@ -102,7 +115,7 @@ void startConfigPortal(WebServer &server, Preferences &prefs) {
   Serial.println("Starte Config Portal (AP: ESP32-C3_SETUP)...");
   WiFi.mode(WIFI_AP);
   WiFi.softAP("WT32_SETUP");
- configBlinker = {LED_BLINK_PIN, 0, 0, 150, 200,1000};
+  configBlinker = { LED_BLINK_PIN, 0, 0, 150, 200, 1000 };
   pinMode(configBlinker.pin, OUTPUT);
   /* server.on("/", 1, handleRoot);
   server.on("/save", 3, handleSave);   */
@@ -118,7 +131,7 @@ void startConfigPortal(WebServer &server, Preferences &prefs) {
   Serial.println("HTTP Server läuft.");
   while (true) {
     server.handleClient();
-    updateBlink(configBlinker,3);
+    updateBlink(configBlinker, 3);
     delay(10);
   }
 }
