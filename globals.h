@@ -20,5 +20,4 @@ String wifiMode = "";  // AP oder STA
 const char* mqtt_server = "10.0.0.37";
 WiFiClient espClient;
 PubSubClient client(espClient);
-
 #endif

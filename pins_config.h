@@ -1,8 +1,9 @@
 // Pins Boardübergreifend definieren
 #pragma once
 #include <Arduino.h>
- //String radarDataOrigin = "";
-// --- Board-Auswahl ---
+// ==========================================
+// Board-Auswahl -> nur EIN Board-Profil aktivieren!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// ==========================================
 // nur ein Profil aktivieren !!!!!
 #define YD_ESP32_S3
 //#define ESP32_S3_SUPERMINI
@@ -17,7 +18,6 @@
 #define ENABLE_MQTT_READ  1 // Modus MQTT-Radardaten einlesen  -> Radardaten darstellen (ohne Sensor)
 
 
-// im Code (Beispiel):
 #if (ENABLE_RD_03D_READ == 1)
     String radarDataOrigin = "SENSOR";
     // Dieser Code wird nur kompiliert, wenn Feature X aktiv ist
