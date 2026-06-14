@@ -59,12 +59,16 @@ bool ap_success;
 unsigned long buttonPressedTime = 0;
 bool buttonIsPressed = false;
 
-#if (ENABLE_RD_03D_READ == 1)
-// RD03D radar(Serial1);
-RD03D radar(SENSOR_RX, SENSOR_TX, 256000);  // RX, TX, Baudrate
-#endif
 void setup() {
   Serial.begin(115200);
+  #if (ENABLE_RD_03D_READ == 1)
+    #if defined(XIAO_ESP32_S3)
+    // RD03D radar(Serial1);
+    Serial1.begin(256000, SERIAL_8N1, SENSOR_RX, SENSOR_TX); 
+      delay(500); // Dem UART-Port Zeit zum Stabilisieren geben
+    #endif
+  RD03D radar(SENSOR_RX, SENSOR_TX, 256000);  // RX, TX, Baudrate
+  #endif
   ////while (!Serial) { delay(10); }  // Wartet aktiv, bis der PC den USB-Port wieder geöffnet hat!
   // Verhindert das Einfrieren, falls der USB-Puffer voll ist:
   //Serial.setTxTimeoutMs(0);
