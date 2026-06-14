@@ -126,6 +126,8 @@ void setup() {
 
       #if (ENABLE_MQTT_READ == 1)
       registerMqttCallback(mqttDataToWs);
+      // Ev. werden logische URL's des Brokers zu phyischer URL umgewandelt
+      resolveMdnsBrokerUrls();
       // Empfang starten
       subscribeToAllActiveTopics();
       #endif
@@ -178,39 +180,11 @@ void loop() {
     }
   }
 
-  /* if (digitalRead(CONFIG_BUTTON_PIN) == LOW) {
-    Serial.println("CONFIG_BUTTON_PIN == LOW");
-    delay(2000);
-    if (digitalRead(CONFIG_BUTTON_PIN) == LOW) {
-      Serial.println("CONFIG_BUTTON_PIN == LOW AFTER 2000");
-      configServer.stop();
-      ESP.restart();
-    }
-  }  */
-
   if (wifiMode == "AP") {
     updateBlink(wifiBlinker, 2);
   } else {
     updateBlink(wifiBlinker, 1);
-    /*
-    if (mqttActive == true) {
 
-      if (!client.connected()) {
-        // Nur die Client-ID übergeben, keine Passwörter für den anonymen Test
-        if (client.connect(mqttQueue.c_str())) {
-          Serial.println("Erfolgreich mit Mosquitto verbunden!");
-          mqttQueue = mqttQueueSensor + "/status";
-          client.publish(mqttQueue.c_str(), "Online");
-        } else {
-          Serial.print("Fehlgeschlagen, RC=");
-          Serial.print(client.state());  // Gibt den Fehlercode aus
-          delay(5000);
-        }
-      }
-    }  */
-    // if (mqttActive == true) {
-    //  client.loop();
-    //}
   }
   #if (ENABLE_RD_03D_READ == 1)
   sensorDataToWs(ws, radar, personDetected, targetDistance, isMoving, sensorid);

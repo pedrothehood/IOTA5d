@@ -4,7 +4,7 @@
 #include <ESPAsyncWebServer.h>
 #include <WebServer.h>
 #include <PubSubClient.h>
-AsyncWebServer server(80);           // TEST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+AsyncWebServer server(80);           
 AsyncWebSocket ws("/ws");
 WebServer configServer(80);
 

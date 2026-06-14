@@ -6,6 +6,7 @@
 #include <ArduinoJson.h>
 #include <PubSubClient.h>
 #include <vector>
+#include <ESPmDNS.h>
 #include "globals.h"
 
 // Datenstruktur für eine MQTT-Verbindung aus der API
@@ -153,6 +154,63 @@ void sendMqttMessageByVariant(String variant, String message) {
     }
   }
 }
+
+/**
+ * Durchsucht alle Verbindungen im Vektor. Wenn die 'brokerurl' keine IP-Adresse ist,
+ * wird versucht, die IP via mDNS zu ermitteln und das Feld zu aktualisieren.
+ */
+void resolveMdnsBrokerUrls() {
+  // Initialisiere mDNS, falls es noch nicht läuft
+  if (!MDNS.begin("esp32-mqtt-client")) {
+    Serial.println("Fehler beim Initialisieren von mDNS!");
+    return;
+  }
+
+  Serial.println("Starte mDNS-Auflösung für Broker-URLs...");
+
+  for (auto conn : mqttConnections) {
+    if (conn == nullptr || conn->brokerurl.length() == 0) continue;
+
+    // Prüfen, ob es sich bereits um eine IPv4-Adresse handelt (enthält Punkte, aber nur Zahlen)
+    bool isIp = true;
+    for (unsigned int i = 0; i < conn->brokerurl.length(); i++) {
+      char c = conn->brokerurl.charAt(i);
+      if (!isDigit(c) && c != '.') {
+        isIp = false;
+        break;
+      }
+    }
+
+    // Wenn es keine IP ist, handelt es sich um einen Hostnamen (z.B. "mosquitto.local" oder "pi-broker")
+    if (!isIp) {
+      String hostToQuery = conn->brokerurl;
+      
+      // mDNS queryHost benötigt den reinen Hostnamen OHNE ".local"
+      if (hostToQuery.endsWith(".local")) {
+        hostToQuery = hostToQuery.substring(0, hostToQuery.length() - 6);
+      }
+
+      Serial.printf("Suche IP für mDNS-Host: %s... ", hostToQuery.c_str());
+      
+      // mDNS-Abfrage ausführen (Standard-Timeout ist 2000ms)
+      IPAddress resolvedIP = MDNS.queryHost(hostToQuery.c_str());
+
+      // Wenn die IP gültig ist (nicht 0.0.0.0), überschreiben wir die brokerurl
+      if (resolvedIP != IPAddress(0, 0, 0, 0)) {
+        conn->brokerurl = resolvedIP.toString();
+        Serial.printf("Erfolgreich aufgelöst zu: %s\n", conn->brokerurl.c_str());
+        
+        // WICHTIG: Da die URL geändert wurde, konfigurieren wir den Server im PubSubClient neu
+        if (conn->active) {
+          conn->mqttClient.setServer(conn->brokerurl.c_str(), conn->port);
+        }
+      } else {
+        Serial.println("Fehlgeschlagen! Host konnte im Netzwerk nicht gefunden werden.");
+      }
+    }
+  }
+}
+
 
 
 // ==========================================
