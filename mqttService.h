@@ -24,6 +24,7 @@ struct MqttConnection {
   String clientid;   
   WiFiClient wifiClient;
   PubSubClient mqttClient;
+  unsigned long lastReconnectAttempt = 0; // NEU: Speichert den Zeitpunkt des letzten Reconnect-Versuchs
 };
 
 // Globaler Vektor speichert alle vorbereiteten Verbindungen
@@ -265,9 +266,42 @@ void subscribeToAllActiveTopics() {
 /**
  * Hält die Hintergrund-Kommunikation für den Empfang aller Clients aufrecht.
  */
-void maintainMqttConnections() {
+void maintainMqttConnections_old() {
   for (auto conn : mqttConnections) {
     if (conn->active && conn->mqttClient.connected()) {
+      conn->mqttClient.loop();
+    }
+  }
+}
+/**
+ * GEÄNDERT: Hält die Verbindung aufrecht und führt bei Verbindungsverlust 
+ * einen nicht-blockierenden automatischen Reconnect-Versuch durch (alle 5 Sekunden).
+ */
+void maintainMqttConnections() {
+  unsigned long currentMillis = millis();
+
+  for (auto conn : mqttConnections) {
+    if (!conn->active) continue;
+
+    if (!conn->mqttClient.connected()) {
+      // Prüfen, ob seit dem letzten fehlgeschlagenen Versuch 5000 ms vergangen sind
+      if (currentMillis - conn->lastReconnectAttempt >= 5000) {
+        conn->lastReconnectAttempt = currentMillis;
+        Serial.printf("[Reconnect] Verbindung verloren für Variant %s. Versuche Reconnect...\n", conn->variant.c_str());
+        
+        // Nicht-blockierender Verbindungsaufbau
+        if (conn->mqttClient.connect(conn->clientid.c_str(), conn->userid.c_str(), conn->password.c_str())) {
+          Serial.printf("[Reconnect] Erfolgreich wiederverbunden! Abonniere Topic neu: %s\n", conn->topic.c_str());
+          
+          // Callback neu setzen und Topic wieder abonnieren
+          conn->mqttClient.setCallback(globalMqttCallback);
+          conn->mqttClient.subscribe(conn->topic.c_str());
+        } else {
+          Serial.printf("[Reconnect] Fehlgeschlagen. Status: %d. Nächster Versuch in 5s.\n", conn->mqttClient.state());
+        }
+      }
+    } else {
+      // Verbindung steht, verarbeite eingehende/ausgehende Pakete
       conn->mqttClient.loop();
     }
   }
