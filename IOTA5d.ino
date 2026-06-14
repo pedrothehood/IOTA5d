@@ -117,20 +117,22 @@ void setup() {
       //mqttQueueSensor = "Sensor-" + sensorid;
       //client.setServer(mqtt_server, 1883);
       // 1. MQTT-Verbindungen über API-Daten vorbereiten und starten
+      #if (ENABLE_RD_03D_READ == 1 || ENABLE_MQTT_READ  == 1)
       // Aufruf-Beispiel mit API-Key, SensorID "TEST1" und ohne optionale Variant
       initializeMqttConnections(apiKey.c_str(), sensorid.c_str());
-
+// Ev. werden logische URL's des Brokers zu phyischer URL umgewandelt
+      resolveMdnsBrokerUrls();
+      #endif
       #if (ENABLE_MQTT_READ == 1)
       registerMqttCallback(mqttDataToWs);
-      // Ev. werden logische URL's des Brokers zu phyischer URL umgewandelt
-      resolveMdnsBrokerUrls();
+      
       // Empfang starten
       subscribeToAllActiveTopics();
       #endif
     }
   }
   pinMode(wifiBlinker.pin, OUTPUT);
-  if (ENABLE_WS_ASYNC_SERVER_INIT == 1)
+  #if (ENABLE_WS_ASYNC_SERVER_INIT == 1)
   serverInit(server, ws, sensorid);
   #endif
   // static TargetData*  ptrTarget ; //= radar.getTarget();    // get pointer to first target ( SINGLE DETECTION )
