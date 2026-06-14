@@ -5,28 +5,28 @@
 // Board-Auswahl -> nur EIN Board-Profil aktivieren!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // ==========================================
 // nur ein Profil aktivieren !!!!!
-#define YD_ESP32_S3
-//#define ESP32_S3_SUPERMINI
+//#define YD_ESP32_S3
+#define ESP32_S3_SUPERMINI
 
 // ==========================================
 // Auswahl der Funktions-Gruppen: ACHTUNG: PULLUP-Widerstand für Taster weiter hinten einstellen!!!!
 // ==========================================
 // nur a1) oder a2) sind möglich!
 // a1) Wird das Einlesen der Radardaten durch den Sensor RD-03D unterstützt?
-#define ENABLE_RD_03D_READ  0 // Modus "Radardaten" erzeugen und MQTT erstellen  -> Radardaten darstellen / ENABLE_WS_ASYNC_SERVER_INIT 1
+#define ENABLE_RD_03D_READ  1 // Modus "Radardaten" erzeugen und MQTT erstellen  -> Radardaten darstellen / ENABLE_WS_ASYNC_SERVER_INIT 1
 // a2) Wird das Einlesen von MQTT-Daten unterstützt ?  
 #define ENABLE_MQTT_READ  0 // Modus MQTT-Radardaten einlesen  -> Radardaten darstellen (ohne Sensor) ENABLE_WS_ASYNC_SERVER_INIT 1
 
 // b) Asynchroner Webserver aktivieren ( a1 oder a2 aktiv)
-#define ENABLE_WS_ASYNC_SERVER_INIT 0
+#define ENABLE_WS_ASYNC_SERVER_INIT 1
 //#define ENABLE_WS_ASYNC_SERVER_INIT 0
 
 // c( MQTT Broker aktivieren)
-#define ENABLE_MQTT_BROKER 1
+#define ENABLE_MQTT_BROKER 0
 //#define ENABLE_MQTT_BROKER 0
 
-#if (ENABLE_RD_03D_READ == 0)
-    //String radarDataOrigin = "SENSOR";
+#if (ENABLE_RD_03D_READ == 1)
+    String radarDataOrigin = "SENSOR";
     // Dieser Code wird nur kompiliert, wenn Feature X aktiv ist
     ////void debugFunction();
 #endif

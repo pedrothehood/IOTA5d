@@ -22,7 +22,8 @@ void reconnect() {
 
 // init wifi
 void wifiInit(String &ssid, String &password, bool &ap_success, String sensorid) {
-  Serial.print("Wifi verbinden");
+  Serial.println("Wifi verbinden");
+  Serial.println (" SSID = " + String(ssid) + " password = " + String(password));
   // V3-Fix: Sicherstellen, dass alte Verbindungen sauber getrennt sind
   WiFi.disconnect(true, true);
   delay(100);
