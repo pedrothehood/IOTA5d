@@ -41,6 +41,10 @@ Preferences prefs;
 //const char *ssid = "TP-Link_2.4GHz_0494CA";
 //const char *password = "pedrothehood007";
 #include <WebServer.h>  // Für Config (Einfachheit)
+#if (ENABLE_RD_03D_READ == 1)
+  // Wir erstellen einen globalen Pointer (Wegweiser), der vorerst auf "nichts" (nullptr) zeigt
+  RD03D* radar = nullptr; 
+#endif
 //#define SENSOR_RX 16
 //#define SENSOR_TX 17
 // Pins definieren
@@ -67,7 +71,9 @@ void setup() {
     Serial1.begin(256000, SERIAL_8N1, SENSOR_RX, SENSOR_TX); 
       delay(500); // Dem UART-Port Zeit zum Stabilisieren geben
     #endif
-  RD03D radar(SENSOR_RX, SENSOR_TX, 256000);  // RX, TX, Baudrate
+      //RD03D radar(SENSOR_RX, SENSOR_TX, 256000);  // RX, TX, Baudrate
+      // JETZT wird das Radar-Objekt dynamisch im Speicher erzeugt – exakt nach Serial1.begin()!
+    radar = new RD03D(SENSOR_RX, SENSOR_TX, 256000);  // RX, TX, Baudrate
   #endif
   ////while (!Serial) { delay(10); }  // Wartet aktiv, bis der PC den USB-Port wieder geöffnet hat!
   // Verhindert das Einfrieren, falls der USB-Puffer voll ist:
@@ -100,7 +106,7 @@ void setup() {
    
     wifiInit(ssid, password, ap_success, sensorid);  // STA mit Radar oder AP mit Radar?
     #if (ENABLE_RD_03D_READ == 1)
-    radarInit(radar);
+    radarInit(*radar);
     #endif
 
     if (WiFi.status() != WL_CONNECTED && ap_success == false) {
@@ -201,6 +207,6 @@ void loop() {
 
   }
   #if (ENABLE_RD_03D_READ == 1)
-  sensorDataToWs(ws, radar, personDetected, targetDistance, isMoving, sensorid);
+  sensorDataToWs(ws, *radar, personDetected, targetDistance, isMoving, sensorid);
   #endif
 }
