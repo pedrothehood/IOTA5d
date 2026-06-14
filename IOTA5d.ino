@@ -32,7 +32,10 @@
 LedBlinker wifiBlinker;
 #include <Preferences.h>
 #if (ENABLE_MQTT_BROKER == 1)
-#include <TinyMqtt.h>
+//#include <TinyMqtt.h>
+// Erstellt den Broker auf dem Standard-Port 1883
+// Die Zahl '10' legt fest, dass maximal 10 Retained Messages im RAM gespeichert werden
+//MqttBroker broker(10); 
 #endif
 Preferences prefs;
 //const char *ssid = "TP-Link_2.4GHz_0494CA";

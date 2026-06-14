@@ -2,6 +2,10 @@
 #define WIFI_INIT_H
 #include <Arduino.h>  // Wichtig, um Arduino-Befehle wie digitalWrite zu nutzen
 #include <ESPmDNS.h>
+  #if (ENABLE_MQTT_BROKER == 1)
+//#include <TinyMqtt.h>
+//extern MqttBroker broker(10); 
+  #endif
 #include "globals.h"
 
 void reconnect() {

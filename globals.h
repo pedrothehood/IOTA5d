@@ -4,6 +4,10 @@
 #include <ESPAsyncWebServer.h>
 #include <WebServer.h>
 #include <PubSubClient.h>
+  #if (ENABLE_MQTT_BROKER == 1)
+#include <TinyMqtt.h>
+MqttBroker broker(10); 
+  #endif
 AsyncWebServer server(80);           
 AsyncWebSocket ws("/ws");
 WebServer configServer(80);
