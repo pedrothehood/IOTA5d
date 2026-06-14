@@ -18,6 +18,7 @@ Partition Scheme: Entsprechend der Flash-Grösse, z. B. 16MB Flash (3MB APP/9.9M
 PSRAM: Passend zu Ihrer RAM-Erweiterung (Kennzeichnung R2 / R8). Oft OPI PSRAM bei N16R8-Boards oder Disabled, falls kein PSRAM verbaut ist.
 Flash Mode: QIO 80MHz
 
+
 Board ESP32S3 Supermini
 Board ESP32S3 Dev Module Grundarchitektur
 USB CDC On Boot Enabled Serieller Monitor über den USB-C Port

@@ -7,6 +7,7 @@
 // nur ein Profil aktivieren !!!!!
 //#define YD_ESP32_S3
 #define ESP32_S3_SUPERMINI
+#define XIAO_ESP32_S3
 
 // ==========================================
 // Auswahl der Funktions-Gruppen: ACHTUNG: PULLUP-Widerstand für Taster weiter hinten einstellen!!!!
@@ -55,15 +56,25 @@
   const int LED_BLINK_PIN = 6;
 
 #elif defined(ESP32_S3_SUPERMINI)
-
+#if (ENABLE_RD_03D_READ == 1)
   const int SENSOR_RX = 4;
   const int SENSOR_TX = 5;
+  #endif
   const int CONFIG_BUTTON_PIN = 1;  // D5 oder GPIO7
   // Erlaubte Werte: INPUT (für externen Widerstand) oder INPUT_PULLUP (für internen Widerstand)
  #define CONFIG_BUTTON_MODE INPUT_PULLUP  // OHNE externem 10kOhm Widerstand!
  //  #define CONFIG_BUTTON_MODE INPUT  // MIT externem 10kOhm Widerstand!
   const int LED_BLINK_PIN = 2;
-
+#elif defined(XIAO_ESP32_S3)
+#if (ENABLE_RD_03D_READ == 1)
+  const int SENSOR_RX = 6;
+  const int SENSOR_TX = 7;
+  #endif
+  const int CONFIG_BUTTON_PIN = 0;  // D5 oder GPIO7
+  // Erlaubte Werte: INPUT (für externen Widerstand) oder INPUT_PULLUP (für internen Widerstand)
+ #define CONFIG_BUTTON_MODE INPUT_PULLUP  // OHNE externem 10kOhm Widerstand!
+ //  #define CONFIG_BUTTON_MODE INPUT  // MIT externem 10kOhm Widerstand!
+  const int LED_BLINK_PIN = 1;
 #else
   #error "Bitte definiere zuerst ein gültiges Board-Profil!"
 #endif
