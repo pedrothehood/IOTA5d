@@ -21,6 +21,10 @@
 #define ENABLE_WS_ASYNC_SERVER_INIT 1
 //#define ENABLE_WS_ASYNC_SERVER_INIT 0
 
+// c( MQTT Broker aktivieren)
+#define ENABLE_MQTT_BROKER 1
+//#define ENABLE_MQTT_BROKER 0
+
 #if (ENABLE_RD_03D_READ == 1)
     String radarDataOrigin = "SENSOR";
     // Dieser Code wird nur kompiliert, wenn Feature X aktiv ist

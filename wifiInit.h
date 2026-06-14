@@ -54,11 +54,27 @@ void wifiInit(String &ssid, String &password, bool &ap_success, String sensorid)
     wifiMode = "STA";
     // mDNS starten (Hostname: mein-esp32.local)
     if (sensorid.length() > 0) {
-      if (!MDNS.begin(sensorid)) {
-        Serial.println("Fehler beim Starten von mDNS");
+      #if (ENABLE_MQTT_BROKER == 0)
+       if (!MDNS.begin(sensorid)) {
+          Serial.println("Fehler beim Starten von mDNS");
       } else {
         Serial.println("mDNS gestartet: http://" + sensorid + ".local");
       }
+      #endif
+      #if (ENABLE_MQTT_BROKER == 1)
+       if (!MDNS.begin("mqttbroker")) {
+         Serial.println("Fehler beim Starten von mDNS im MQTTBROKER-MODE");
+      } else {
+        Serial.println("mDNS gestartet: http://" + sensorid + ".local");
+        // 3. Den Dienst "mqtt" im Netzwerk registrieren, damit Clients ihn finden
+         MDNS.addService("mqtt", "tcp", 1883);
+        Serial.println("MQTT-Dienst via mDNS angekündigt (Port 1883).");
+         // 4. Den MQTT-Broker starten
+       broker.begin();
+      Serial.println("MQTT-Broker läuft und wartet auf Clients...");
+      }
+      #endif
+    
     }
   }
 

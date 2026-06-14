@@ -31,7 +31,9 @@
 //#include "sensorInit.h"    // nach vorne
 LedBlinker wifiBlinker;
 #include <Preferences.h>
-
+#if (ENABLE_MQTT_BROKER == 1)
+#include <TinyMqtt.h>
+#endif
 Preferences prefs;
 //const char *ssid = "TP-Link_2.4GHz_0494CA";
 //const char *password = "pedrothehood007";
@@ -147,7 +149,11 @@ void loop() {
     configServer.handleClient();
     return;
   }
-
+  #if (ENABLE_MQTT_BROKER == 1)
+   // Der Broker muss regelmässig im Loop aufgerufen werden,
+  // um Datenpakete zu verarbeiten und Verbindungen zu halten.
+  broker.loop();
+  #endif
   if (mqttActive == true) {
     /*// Hält alle aktiven MQTT-Verbindungen am Leben   ----->>>>>>>>>>>> CHECK für Receive!!!!
     for (auto conn : mqttConnections) {
