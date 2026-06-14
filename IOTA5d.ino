@@ -149,12 +149,13 @@ void loop() {
   }
 
   if (mqttActive == true) {
-    // Hält alle aktiven MQTT-Verbindungen am Leben   ----->>>>>>>>>>>> CHECK für Receive!!!!
+    /*// Hält alle aktiven MQTT-Verbindungen am Leben   ----->>>>>>>>>>>> CHECK für Receive!!!!
     for (auto conn : mqttConnections) {
       if (conn != nullptr && conn->active) {
         conn->mqttClient.loop();
       }
-    }
+    }  */
+    maintainMqttConnections(); // ersetzt obigen Code
   }
 
   // WICHTIG: Prüft kontinuierlich auf eingehende Updates

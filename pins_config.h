@@ -17,7 +17,6 @@
 // a2) Wird das Einlesen von MQTT-Daten unterstützt ?  
 #define ENABLE_MQTT_READ  1 // Modus MQTT-Radardaten einlesen  -> Radardaten darstellen (ohne Sensor)
 
-
 #if (ENABLE_RD_03D_READ == 1)
     String radarDataOrigin = "SENSOR";
     // Dieser Code wird nur kompiliert, wenn Feature X aktiv ist

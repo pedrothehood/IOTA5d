@@ -33,10 +33,6 @@ void serverInit(AsyncWebServer &server, AsyncWebSocket &ws, String sensorid) {
     server.on("/api/radardataorigin", HTTP_GET, [radarDataOrigin](AsyncWebServerRequest *request){
     request->send(200, "text/plain",radarDataOrigin);
   });
-
-
-// WiFi.macAddress()
-
   server.begin();
 }
 #endif
