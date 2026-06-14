@@ -58,10 +58,6 @@ bool buttonIsPressed = false;
 // RD03D radar(Serial1);
 RD03D radar(SENSOR_RX, SENSOR_TX, 256000);  // RX, TX, Baudrate
 #endif
-
-//AsyncWebServer server(81);           // TEST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//AsyncWebSocket ws("/ws");
-//WebServer configServer(80);
 void setup() {
   Serial.begin(115200);
   ////while (!Serial) { delay(10); }  // Wartet aktiv, bis der PC den USB-Port wieder geöffnet hat!
@@ -134,7 +130,9 @@ void setup() {
     }
   }
   pinMode(wifiBlinker.pin, OUTPUT);
+  if (ENABLE_WS_ASYNC_SERVER_INIT == 1)
   serverInit(server, ws, sensorid);
+  #endif
   // static TargetData*  ptrTarget ; //= radar.getTarget();    // get pointer to first target ( SINGLE DETECTION )
   // static bool detected = false;
   //sensorDataToWs(ws,radar,personDetected,targetDistance,isMoving);

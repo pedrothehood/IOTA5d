@@ -13,9 +13,13 @@
 // ==========================================
 // nur a1) oder a2) sind möglich!
 // a1) Wird das Einlesen der Radardaten durch den Sensor RD-03D unterstützt?
-#define ENABLE_RD_03D_READ  0 // Modus "Radardaten" erzeugen und MQTT erstellen  -> Radardaten darstellen
+#define ENABLE_RD_03D_READ  0 // Modus "Radardaten" erzeugen und MQTT erstellen  -> Radardaten darstellen / ENABLE_WS_ASYNC_SERVER_INIT 1
 // a2) Wird das Einlesen von MQTT-Daten unterstützt ?  
-#define ENABLE_MQTT_READ  1 // Modus MQTT-Radardaten einlesen  -> Radardaten darstellen (ohne Sensor)
+#define ENABLE_MQTT_READ  1 // Modus MQTT-Radardaten einlesen  -> Radardaten darstellen (ohne Sensor) ENABLE_WS_ASYNC_SERVER_INIT 1
+
+// b) Asynchroner Webserver aktivieren ( a1 oder a2 aktiv)
+#define ENABLE_WS_ASYNC_SERVER_INIT 1
+//#define ENABLE_WS_ASYNC_SERVER_INIT 0
 
 #if (ENABLE_RD_03D_READ == 1)
     String radarDataOrigin = "SENSOR";
