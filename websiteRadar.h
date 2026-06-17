@@ -120,8 +120,8 @@ const indicatorText = document.getElementById('indicatorText');
         .then(response => response.text())
         .then(data => {
           radarDataOrigin = data;
-          if (radarDataOrigin = "MQTT")  MAX_TIMEOUT_MS = MAX_TIMEOUT_MQTT;
-            if (radarDataOrigin = "MQTT")  {
+          if (radarDataOrigin == "MQTT")  MAX_TIMEOUT_MS = MAX_TIMEOUT_MQTT;
+            if (radarDataOrigin == "MQTT")  {
              document.getElementById("processMode").innerText = " Mode: MQTT";
              }else{
                   document.getElementById("processMode").innerText = " Mode: SENSOR";

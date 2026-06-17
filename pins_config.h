@@ -67,8 +67,8 @@
   const int LED_BLINK_PIN = 2;
 #elif defined(XIAO_ESP32_S3)
 #if (ENABLE_RD_03D_READ == 1)
-  const int SENSOR_RX = 44; //41;
-  const int SENSOR_TX = 43; //42;
+  const int SENSOR_RX = 44; //41;  --> D7
+  const int SENSOR_TX = 43; //42;  --> D6
   #endif
   const int CONFIG_BUTTON_PIN = 1;  // D5 oder GPIO7
   // Erlaubte Werte: INPUT (für externen Widerstand) oder INPUT_PULLUP (für internen Widerstand)
