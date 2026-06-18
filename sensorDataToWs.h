@@ -69,12 +69,12 @@ void sensorDataToWs(AsyncWebSocket &ws, RD03D &radar, volatile bool &personDetec
       //String stateTopic = mqttQueue.c_str() + "/occupancy";
       //// client.publish(mqttQueue.c_str(), statePayload.c_str());
       sendMqttMessageByVariant("OCCUPANCY", statePayload.c_str());
-      //Serial.print("statePayload = ");
-      // Serial.println(statePayload);
+      //printP("statePayload = ");
+      // printlnP(statePayload);
       // if (ws.count() > 0 && ws.availableForWriteAll()) {
       //  ws.textAll(statePayload);
-      //  Serial.print("statePayload = ");
-      //  Serial.println(statePayload);
+      //  printP("statePayload = ");
+      //  printlnP(statePayload);
       //}
     }
   }
@@ -101,7 +101,7 @@ void sensorDataToWs(AsyncWebSocket &ws, RD03D &radar, volatile bool &personDetec
     // Hier Ihren MQTT-Sende-Befehl einfügen, z.B.:
     // mqttClient.publish(("esp32/" + sensorid).c_str(), json.c_str());
 
-    //  Serial.println("first = " + String(first) + " sensorid.length = " + String(sensorid.length()) + " json = " + json);
+    //  printlnP("first = " + String(first) + " sensorid.length = " + String(sensorid.length()) + " json = " + json);
     // Sendet nur, wenn die JSON-Daten gefüllt sind (also Ziele erkannt wurden)
 
     //if (!first && json.length() > 0) {

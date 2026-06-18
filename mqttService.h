@@ -8,7 +8,7 @@
 #include <vector>
 #include <ESPmDNS.h>
 #include "globals.h"
-
+#include "telnet.h"
 // Datenstruktur für eine MQTT-Verbindung aus der API
 struct MqttConnection {
   int connid;
@@ -62,7 +62,7 @@ String getMqttData(const char* key, const char* sensorId, const char* variant) {
 
   HTTPClient http;
   String url = "https://mediabegleitung.ch/iotph1/getmqttdata.php?api_key=" + String(key) + "&active=X&sensorid=" + String(sensorId);
-  Serial.println(url);
+  printlnP(url);
   if (variant != nullptr && String(variant).length() > 0) {
     url += "&variant=" + String(variant);
   }
@@ -74,7 +74,7 @@ String getMqttData(const char* key, const char* sensorId, const char* variant) {
   if (httpCode == HTTP_CODE_OK) {
     payload = http.getString();
   } else {
-    Serial.printf("HTTP Fehler: %d\n", httpCode);
+    printfP("HTTP Fehler: %d\n", httpCode);
   }
   http.end();
   return payload;
@@ -88,7 +88,7 @@ void parseAndPrepareConnections(String jsonString) {
   DeserializationError error = deserializeJson(doc, jsonString);
 
   if (error) {
-    Serial.printf("JSON Parsing fehlgeschlagen: %s\n", error.c_str());
+    printfP("JSON Parsing fehlgeschlagen: %s\n", error.c_str());
     return;
   }
 
@@ -117,12 +117,12 @@ void parseAndPrepareConnections(String jsonString) {
       conn->mqttClient.setClient(conn->wifiClient);
       conn->mqttClient.setServer(conn->brokerurl.c_str(), conn->port);
 
-      Serial.printf("Initialisiere Verbindung für Variant %s zu Broker %s\n", conn->variant.c_str(), conn->brokerurl.c_str());
+      printfP("Initialisiere Verbindung für Variant %s zu Broker %s\n", conn->variant.c_str(), conn->brokerurl.c_str());
       
       if (conn->mqttClient.connect(conn->clientid.c_str(), conn->userid.c_str(), conn->password.c_str())) {
-        Serial.printf("Erfolgreich verbunden mit Topic: %s (Client-ID: %s)\n", conn->topic.c_str(), conn->clientid.c_str());
+        printfP("Erfolgreich verbunden mit Topic: %s (Client-ID: %s)\n", conn->topic.c_str(), conn->clientid.c_str());
       } else {
-        Serial.printf("Verbindung fehlgeschlagen. Status: %d\n", conn->mqttClient.state());
+        printfP("Verbindung fehlgeschlagen. Status: %d\n", conn->mqttClient.state());
       }
 
       mqttConnections.push_back(conn);
@@ -134,13 +134,13 @@ void parseAndPrepareConnections(String jsonString) {
 
 // Kapselung für das Setup
 void initializeMqttConnections(const char* key, const char* sensorId, const char* variant) {
-  Serial.println("Rufe REST Service auf...");
+  printlnP("Rufe REST Service auf...");
   String jsonResponse = getMqttData(key, sensorId, variant);
 
   if (jsonResponse.length() > 0) {
     parseAndPrepareConnections(jsonResponse);
   } else {
-    Serial.println("Keine Daten vom REST Service erhalten.");
+    printlnP("Keine Daten vom REST Service erhalten.");
   }
 }
 
@@ -163,11 +163,11 @@ void sendMqttMessageByVariant(String variant, String message) {
 void resolveMdnsBrokerUrls() {
   // Initialisiere mDNS, falls es noch nicht läuft
   if (!MDNS.begin("esp32-mqtt-client")) {
-    Serial.println("Fehler beim Initialisieren von mDNS!");
+    printlnP("Fehler beim Initialisieren von mDNS!");
     return;
   }
 
-  Serial.println("Starte mDNS-Auflösung für Broker-URLs...");
+  printlnP("Starte mDNS-Auflösung für Broker-URLs...");
 
   for (auto conn : mqttConnections) {
     if (conn == nullptr || conn->brokerurl.length() == 0) continue;
@@ -191,7 +191,7 @@ void resolveMdnsBrokerUrls() {
         hostToQuery = hostToQuery.substring(0, hostToQuery.length() - 6);
       }
 
-      Serial.printf("Suche IP für mDNS-Host: %s... ", hostToQuery.c_str());
+      printfP("Suche IP für mDNS-Host: %s... ", hostToQuery.c_str());
       
       // mDNS-Abfrage ausführen (Standard-Timeout ist 2000ms)
       IPAddress resolvedIP = MDNS.queryHost(hostToQuery.c_str());
@@ -199,14 +199,14 @@ void resolveMdnsBrokerUrls() {
       // Wenn die IP gültig ist (nicht 0.0.0.0), überschreiben wir die brokerurl
       if (resolvedIP != IPAddress(0, 0, 0, 0)) {
         conn->brokerurl = resolvedIP.toString();
-        Serial.printf("Erfolgreich aufgelöst zu: %s\n", conn->brokerurl.c_str());
+        printfP("Erfolgreich aufgelöst zu: %s\n", conn->brokerurl.c_str());
         
         // WICHTIG: Da die URL geändert wurde, konfigurieren wir den Server im PubSubClient neu
         if (conn->active) {
           conn->mqttClient.setServer(conn->brokerurl.c_str(), conn->port);
         }
       } else {
-        Serial.println("Fehlgeschlagen! Host konnte im Netzwerk nicht gefunden werden.");
+        printlnP("Fehlgeschlagen! Host konnte im Netzwerk nicht gefunden werden.");
       }
     }
   }
@@ -242,7 +242,7 @@ void globalMqttCallback(char* topic, byte* payload, unsigned int length) {
   if (externalCallback != nullptr) {
     externalCallback(foundVariant, incomingTopic, message);
   } else {
-    Serial.println("Warnung: Nachricht empfangen, aber kein externer Callback registriert!");
+    printlnP("Warnung: Nachricht empfangen, aber kein externer Callback registriert!");
   }
 }
 
@@ -255,9 +255,9 @@ void subscribeToAllActiveTopics() {
       conn->mqttClient.setCallback(globalMqttCallback);
       
       if (conn->mqttClient.subscribe(conn->topic.c_str())) {
-        Serial.printf("Erfolgreich abonniert: %s\n", conn->topic.c_str());
+        printfP("Erfolgreich abonniert: %s\n", conn->topic.c_str());
       } else {
-        Serial.printf("Abonnement fehlgeschlagen für: %s\n", conn->topic.c_str());
+        printfP("Abonnement fehlgeschlagen für: %s\n", conn->topic.c_str());
       }
     }
   }
@@ -287,17 +287,17 @@ void maintainMqttConnections() {
       // Prüfen, ob seit dem letzten fehlgeschlagenen Versuch 5000 ms vergangen sind
       if (currentMillis - conn->lastReconnectAttempt >= 5000) {
         conn->lastReconnectAttempt = currentMillis;
-        Serial.printf("[Reconnect] Verbindung verloren für Variant %s. Versuche Reconnect...\n", conn->variant.c_str());
+        printfP("[Reconnect] Verbindung verloren für Variant %s. Versuche Reconnect...\n", conn->variant.c_str());
         
         // Nicht-blockierender Verbindungsaufbau
         if (conn->mqttClient.connect(conn->clientid.c_str(), conn->userid.c_str(), conn->password.c_str())) {
-          Serial.printf("[Reconnect] Erfolgreich wiederverbunden! Abonniere Topic neu: %s\n", conn->topic.c_str());
+          printfP("[Reconnect] Erfolgreich wiederverbunden! Abonniere Topic neu: %s\n", conn->topic.c_str());
           
           // Callback neu setzen und Topic wieder abonnieren
           conn->mqttClient.setCallback(globalMqttCallback);
           conn->mqttClient.subscribe(conn->topic.c_str());
         } else {
-          Serial.printf("[Reconnect] Fehlgeschlagen. Status: %d. Nächster Versuch in 5s.\n", conn->mqttClient.state());
+          printfP("[Reconnect] Fehlgeschlagen. Status: %d. Nächster Versuch in 5s.\n", conn->mqttClient.state());
         }
       }
     } else {

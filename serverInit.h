@@ -1,6 +1,7 @@
 #ifndef SERVER_INIT_H
 #define SERVER_INIT_H
 #include <Arduino.h> // Wichtig, um Arduino-Befehle wie digitalWrite zu nutzen
+#include "telnet.h"
 // Falls index_html in einer anderen .cpp/.ino Datei definiert ist, 
 // müssen wir dem Compiler hier sagen, dass es existiert:
 extern const char index_html[] PROGMEM; 
@@ -9,9 +10,9 @@ extern unsigned long mqttint ;  // mqtt Intervall-Zeit
 extern String mqttintString;
 // Init Server
 void serverInit(AsyncWebServer &server, AsyncWebSocket &ws, String sensorid) {
-  Serial.print("Server-Handling/Add Handler/Server.on/server.begin");
+  printP("Server-Handling/Add Handler/Server.on/server.begin");
   delay(500);  // Dem System Zeit geben, den Stack zu stabilisieren
-  //Serial.println("Add handler");
+  //printlnP("Add handler");
   server.addHandler(&ws);
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
     request->send_P(200, "text/html", index_html);

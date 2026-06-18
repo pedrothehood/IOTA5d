@@ -4,7 +4,7 @@
 #include "globals.h"  // Lokale Header-Datei laden
 
 void mqttDataToWs(String variant, String topic, String message) {
-  //Serial.println("--- Nachricht in meiner Hauptlogik angekommen! ---");
+  //printlnP("--- Nachricht in meiner Hauptlogik angekommen! ---");
   
   if (variant == "OCCUPANCY") {
     ws.textAll(message);

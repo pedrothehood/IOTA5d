@@ -8,6 +8,7 @@
 #include "blinker.h"
 #include "pins_config.h"
 #include <esp_mac.h>
+#include "telnet.h"
 LedBlinker configBlinker;
 void getPreferences(Preferences &prefs) {
 
@@ -105,16 +106,16 @@ html.replace("%%MAC%%", getHardwareMac());
 }
 
 void handleSave(WebServer &server, Preferences &prefs) {
-  Serial.print("handleSave, server.method = ");
-  Serial.println(String(server.method()));
+  printP("handleSave, server.method = ");
+  printlnP(String(server.method()));
   if (server.method() == 3)  // für HTTP Post
   {
     prefs.begin("config", false);
-    Serial.println("Funktion handleSave: am Beginn:");
-    Serial.print("SSID= ");
-    Serial.println(server.arg("sensorid"));
-    Serial.print("PASSWORD= ");
-    Serial.println(server.arg("password"));
+    printlnP("Funktion handleSave: am Beginn:");
+    printP("SSID= ");
+    printlnP(server.arg("sensorid"));
+    printP("PASSWORD= ");
+    printlnP(server.arg("password"));
 
     // Werte aus dem Formular in den Speicher schreiben
     prefs.putString("sid", server.arg("sensorid"));
@@ -136,7 +137,7 @@ void handleSave(WebServer &server, Preferences &prefs) {
 }
 
 void startConfigPortal(WebServer &server, Preferences &prefs) {
-  Serial.println("Starte Config Portal (AP: ESP32-C3_SETUP)...");
+  printlnP("Starte Config Portal (AP: ESP32-C3_SETUP)...");
   WiFi.mode(WIFI_AP);
   WiFi.softAP("WT32_SETUP");
   configBlinker = { LED_BLINK_PIN, 0, 0, 150, 200, 1000 };
@@ -152,7 +153,7 @@ void startConfigPortal(WebServer &server, Preferences &prefs) {
     handleSave(server, prefs);
   });
   server.begin();
-  Serial.println("HTTP Server läuft.");
+  printlnP("HTTP Server läuft.");
   while (true) {
     server.handleClient();
     updateBlink(configBlinker, 3);

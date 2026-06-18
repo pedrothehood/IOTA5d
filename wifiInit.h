@@ -2,6 +2,7 @@
 #define WIFI_INIT_H
 #include <Arduino.h>  // Wichtig, um Arduino-Befehle wie digitalWrite zu nutzen
 #include <ESPmDNS.h>
+#include "telnet.h"
   #if (ENABLE_MQTT_BROKER == 1)
 //#include <TinyMqtt.h>
 //extern MqttBroker broker(10); 
@@ -22,8 +23,8 @@ void reconnect() {
 
 // init wifi
 void wifiInit(String &ssid, String &password, bool &ap_success, String sensorid) {
-  Serial.println("Wifi verbinden");
-  Serial.println (" SSID = " + String(ssid) + " password = " + String(password));
+  printlnP("Wifi verbinden");
+  printlnP(" SSID = " + String(ssid) + " password = " + String(password));
   // V3-Fix: Sicherstellen, dass alte Verbindungen sauber getrennt sind
   WiFi.disconnect(true, true);
   delay(100);
@@ -32,11 +33,11 @@ void wifiInit(String &ssid, String &password, bool &ap_success, String sensorid)
   int retry = 0;
   while (WiFi.status() != WL_CONNECTED && retry < 10) {
     delay(500);
-    Serial.print(".");
+    printP(".");
     retry++;
   }
   if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("\nSTA fehlgeschlagen. Schalte um auf AP...");
+    printlnP("\nSTA fehlgeschlagen. Schalte um auf AP...");
     // V3-Fix: STA-Modus sauber beenden, bevor AP gestartet wird!
     WiFi.disconnect(true);
     delay(200);
@@ -51,32 +52,32 @@ void wifiInit(String &ssid, String &password, bool &ap_success, String sensorid)
     }   */
 
     if (ap_success == false) return;
-    Serial.println(">>> MODUS: AP RADAR <<<");
+    printlnP(">>> MODUS: AP RADAR <<<");
     wifiMode = "AP";
 
   } else {  // Connected to STA
-    Serial.println(">>> MODUS: STA RADAR <<<");
+    printlnP(">>> MODUS: STA RADAR <<<");
     wifiMode = "STA";
     // mDNS starten (Hostname: mein-esp32.local)
     if (sensorid.length() > 0) {
       #if (ENABLE_MQTT_BROKER == 0)
        if (!MDNS.begin(sensorid)) {
-          Serial.println("Fehler beim Starten von mDNS");
+          printlnP("Fehler beim Starten von mDNS");
       } else {
-        Serial.println("mDNS gestartet: http://" + sensorid + ".local");
+        printlnP("mDNS gestartet: http://" + sensorid + ".local");
       }
       #endif
       #if (ENABLE_MQTT_BROKER == 1)
        if (!MDNS.begin("mqttbroker")) {
-         Serial.println("Fehler beim Starten von mDNS im MQTTBROKER-MODE");
+         printlnP("Fehler beim Starten von mDNS im MQTTBROKER-MODE");
       } else {
-        Serial.println("mDNS gestartet: http://" + sensorid + ".local");
+        printlnP("mDNS gestartet: http://" + sensorid + ".local");
         // 3. Den Dienst "mqtt" im Netzwerk registrieren, damit Clients ihn finden
          MDNS.addService("mqtt", "tcp", 1883);
-        Serial.println("MQTT-Dienst via mDNS angekündigt (Port 1883).");
+        printlnP("MQTT-Dienst via mDNS angekündigt (Port 1883).");
          // 4. Den MQTT-Broker starten
        broker.begin();
-      Serial.println("MQTT-Broker läuft und wartet auf Clients...");
+      printlnP("MQTT-Broker läuft und wartet auf Clients...");
       }
       #endif
     
@@ -85,12 +86,12 @@ void wifiInit(String &ssid, String &password, bool &ap_success, String sensorid)
 
 // V3-Fix: IP nur ausgeben, wenn wir nicht im fehlerhaften AP-Modus sind
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("IP (STA): " + WiFi.localIP().toString());
+    printlnP("IP (STA): " + WiFi.localIP().toString());
   } else if (wifiMode == "AP") {
-    Serial.println("IP (AP): " + WiFi.softAPIP().toString());
+    printlnP("IP (AP): " + WiFi.softAPIP().toString());
   }
   
-  Serial.println("Wifi-Initialisierung beendet.");
+  printlnP("Wifi-Initialisierung beendet.");
 }
 
 #endif
