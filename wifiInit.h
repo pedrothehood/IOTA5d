@@ -19,7 +19,7 @@ void reconnect() {
       delay(5000);
     }
   }
-}
+}  
 
 // init wifi
 void wifiInit(String &ssid, String &password, bool &ap_success, String sensorid) {
@@ -62,6 +62,7 @@ void wifiInit(String &ssid, String &password, bool &ap_success, String sensorid)
     if (sensorid.length() > 0) {
       #if (ENABLE_MQTT_BROKER == 0)
        if (!MDNS.begin(sensorid)) {
+        MDNS.addService("http", "tcp", 80);
           printlnP("Fehler beim Starten von mDNS");
       } else {
         printlnP("mDNS gestartet: http://" + sensorid + ".local");
@@ -69,6 +70,7 @@ void wifiInit(String &ssid, String &password, bool &ap_success, String sensorid)
       #endif
       #if (ENABLE_MQTT_BROKER == 1)
        if (!MDNS.begin("mqttbroker")) {
+        MDNS.addService("http", "tcp", 80);
          printlnP("Fehler beim Starten von mDNS im MQTTBROKER-MODE");
       } else {
         printlnP("mDNS gestartet: http://" + sensorid + ".local");
